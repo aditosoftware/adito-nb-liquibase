@@ -1,6 +1,7 @@
 package com.github.wglanzer.nbm.liquibase.impl;
 
 import com.github.wglanzer.nbm.liquibase.internal.*;
+import com.github.wglanzer.nbm.util.SelectConnectionPanel;
 import com.google.inject.Singleton;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.db.explorer.*;
@@ -22,20 +23,12 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
   @Override
   public Supplier<Connection> findConnectionInNodes(Node[] pNodes)
   {
-    DatabaseConnection con = ConnectionManager.getDefault().getConnection("LIQUIBASE-CON");
-    if (con == null)
-    {
-      con = ConnectionManager.getDefault().getConnections()[0];
-      //con = ConnectionManager.getDefault().showAddConnectionDialogFromEventThread(null);
-    }
-
-    if (con == null)
-      return null;
-
-    DatabaseConnection connection = con;
     return () -> {
       try
       {
+        DatabaseConnection connection = SelectConnectionPanel.selectConnection(true);
+        if(connection == null)
+          return null;
         ConnectionManager.getDefault().connect(connection);
         return connection.getJDBCConnection();
       }

@@ -44,11 +44,15 @@ class LiquibaseFactoryImpl implements ILiquibaseFactory
       JdbcConnection con = null;
       try
       {
-        con = new JdbcConnection(connectionSupplier.get());
-        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-        Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(), database);
-        base.validate();
-        pExecutor.accept(base);
+        Connection jdbcCon = connectionSupplier.get();
+        if(jdbcCon != null)
+        {
+          con = new JdbcConnection(jdbcCon);
+          Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
+          Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(), database);
+          base.validate();
+          pExecutor.accept(base);
+        }
       }
       finally
       {
