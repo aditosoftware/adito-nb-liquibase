@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.github.wglanzer.nbm</groupId>
-  <artifactId>nb-plugin-blueprint</artifactId>
+  <artifactId>liquibase</artifactId>
   <version>1.0.0</version>
   <packaging>nbm</packaging>
 
@@ -21,6 +21,14 @@
   </repositories>
 
   <dependencies>
+    <!-- Liquibase -->
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+      <version>3.6.2</version>
+    </dependency>
+
+    <!-- NetBeans -->
     <dependency>
       <groupId>org.netbeans.api</groupId>
       <artifactId>org-openide-util</artifactId>
@@ -31,6 +39,64 @@
       <artifactId>org-openide-awt</artifactId>
       <version>${netbeans.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-openide-nodes</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-openide-util-ui</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-openide-util-lookup</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-openide-windows</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-openide-filesystems</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-netbeans-modules-db</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+
+    <!-- Guice -->
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>4.2.1</version>
+    </dependency>
+
+    <!-- RxJava -->
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>2.2.3</version>
+    </dependency>
+
+    <!-- Annotations -->
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>16.0.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derbyclient</artifactId>
+      <version>10.14.2.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -42,7 +108,9 @@
         <version>4.1</version>
         <extensions>true</extensions>
         <configuration>
-          <sourceManifestFile>${project.basedir}/src/nbm/MANIFEST.mf</sourceManifestFile>
+          <sourceManifestFile>src/main/nbm/MANIFEST.mf</sourceManifestFile>
+          <netbeansInstallation>C:/Program Files/NetBeans 8.2</netbeansInstallation>
+          <additionalArguments>-J"-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:8000,suspend=y"</additionalArguments>
         </configuration>
       </plugin>
 
@@ -55,6 +123,17 @@
           <archive>
             <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
           </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Compiler for 1.8 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
         </configuration>
       </plugin>
     </plugins>
