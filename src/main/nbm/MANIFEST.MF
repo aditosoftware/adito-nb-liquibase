@@ -1,2 +1,6 @@
 Manifest-Version: 1.0
 AutoUpdate-Show-In-Client: true
+OpenIDE-Module-Name: Liquibase
+OpenIDE-Module-Display-Category: ADITO / Database
+OpenIDE-Module-Short-Description: Integrates simple tooling for Liquibase systems
+OpenIDE-Module-Long-Description: Integrates simple tooling for Liquibase systems
