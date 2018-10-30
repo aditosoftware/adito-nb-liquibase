@@ -10,6 +10,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.FileSystemResourceAccessor;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.sql.Connection;
 import java.util.function.Supplier;
 
@@ -49,7 +50,8 @@ class LiquibaseFactoryImpl implements ILiquibaseFactory
         {
           con = new JdbcConnection(jdbcCon);
           Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-          Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(), database);
+          String basePath = new File(changeLogFile).getParentFile().getAbsolutePath();
+          Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(basePath), database);
           base.validate();
           pExecutor.accept(base);
         }
