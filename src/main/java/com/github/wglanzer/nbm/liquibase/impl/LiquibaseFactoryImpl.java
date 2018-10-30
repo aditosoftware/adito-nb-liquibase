@@ -42,24 +42,15 @@ class LiquibaseFactoryImpl implements ILiquibaseFactory
     @Override
     public <Ex extends Exception> void executeWith(@NotNull ILiquibaseProvider.ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException
     {
-      JdbcConnection con = null;
-      try
+      Connection jdbcCon = connectionSupplier.get();
+      if (jdbcCon != null)
       {
-        Connection jdbcCon = connectionSupplier.get();
-        if(jdbcCon != null)
-        {
-          con = new JdbcConnection(jdbcCon);
-          Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-          String basePath = new File(changeLogFile).getParentFile().getAbsolutePath();
-          Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(basePath), database);
-          base.validate();
-          pExecutor.accept(base);
-        }
-      }
-      finally
-      {
-        if(con != null)
-          con.close();
+        JdbcConnection con = new JdbcConnection(jdbcCon);
+        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
+        String basePath = new File(changeLogFile).getParentFile().getAbsolutePath();
+        Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(basePath), database);
+        base.validate();
+        pExecutor.accept(base);
       }
     }
   }
