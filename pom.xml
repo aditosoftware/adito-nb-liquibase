@@ -12,7 +12,7 @@
 
   <groupId>de.adito.aditoweb.nbm</groupId>
   <artifactId>liquibase</artifactId>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
   <packaging>nbm</packaging>
 
   <properties>
@@ -71,6 +71,16 @@
     <dependency>
       <groupId>org.netbeans.api</groupId>
       <artifactId>org-openide-dialogs</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-netbeans-api-progress</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-netbeans-api-progress-nb</artifactId>
       <version>${netbeans.version}</version>
     </dependency>
 

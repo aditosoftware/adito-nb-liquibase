@@ -1,6 +1,6 @@
 package com.github.wglanzer.nbm.liquibase.impl;
 
-import com.github.wglanzer.nbm.liquibase.IActionEnvironment;
+import com.github.wglanzer.nbm.liquibase.*;
 import com.github.wglanzer.nbm.liquibase.internal.*;
 import com.google.inject.AbstractModule;
 
@@ -19,6 +19,7 @@ public class LiquibaseModule extends AbstractModule
     bind(IChangelogProvider.class).to(ActivatedNodesProviderImpl.class);
     bind(IActionEnvironment.class).to(ActionEnvironmentImpl.class);
     bind(ILiquibaseFactory.class).to(LiquibaseFactoryImpl.class);
+    bind(INotificationFacade.class).to(NotificationFacadeImpl.class);
   }
 
 }

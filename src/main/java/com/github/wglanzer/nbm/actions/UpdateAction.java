@@ -10,7 +10,10 @@ import org.openide.util.NbBundle;
  *
  * @author w.glanzer, 23.10.2018
  */
-@NbBundle.Messages("CTL_UpdateAction=Update")
+@NbBundle.Messages({
+    "CTL_UpdateAction=Update...",
+    "LBL_UpdateAction_Success=Update Successfull"
+})
 @ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.UpdateAction")
 @ActionRegistration(displayName = "#CTL_UpdateAction", lazy = false)
 @ActionReferences({
@@ -21,16 +24,12 @@ public class UpdateAction extends AbstractLiquibaseAction
 {
 
   @Override
-  public void actionPerformed(@NotNull ILiquibaseProvider pProvider)
+  public void actionPerformed(@NotNull ILiquibaseProvider pProvider) throws Exception
   {
-    try
-    {
-      pProvider.executeWith(pLiquibase -> pLiquibase.update(""));
-    }
-    catch (Exception e)
-    {
-      throw new RuntimeException(e);
-    }
+    pProvider.executeWith(pLiquibase -> {
+      pLiquibase.update("");
+      getNotificationFacade().notify(Bundle.LBL_UpdateAction_Success(), null, true);
+    });
   }
 
   @Override

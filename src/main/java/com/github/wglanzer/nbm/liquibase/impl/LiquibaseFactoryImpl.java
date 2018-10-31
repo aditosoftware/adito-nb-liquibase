@@ -6,9 +6,11 @@ import com.google.inject.Singleton;
 import liquibase.Liquibase;
 import liquibase.database.*;
 import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.LiquibaseException;
+import liquibase.exception.*;
 import liquibase.resource.FileSystemResourceAccessor;
 import org.jetbrains.annotations.NotNull;
+import org.openide.*;
+import org.openide.util.NbBundle;
 
 import java.io.File;
 import java.sql.Connection;
@@ -18,6 +20,9 @@ import java.util.function.Supplier;
  * @author w.glanzer, 24.10.2018
  */
 @Singleton
+@NbBundle.Messages({
+    "LBL_ContinueValidation=Clear CheckSums before Validation?"
+})
 class LiquibaseFactoryImpl implements ILiquibaseFactory
 {
 
@@ -49,7 +54,27 @@ class LiquibaseFactoryImpl implements ILiquibaseFactory
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
         String basePath = new File(changeLogFile).getParentFile().getAbsolutePath();
         Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(basePath), database);
-        base.validate();
+
+        try
+        {
+          base.validate();
+        }
+        catch (ValidationFailedException vfe)
+        {
+          NotifyDescriptor.Confirmation descr = new DialogDescriptor.Confirmation(vfe.getLocalizedMessage() + "\n" + Bundle.LBL_ContinueValidation(), NotifyDescriptor.YES_NO_OPTION);
+          Object result = DialogDisplayer.getDefault().notify(descr);
+          if (result == NotifyDescriptor.YES_OPTION)
+          {
+            // Clear
+            base.clearCheckSums();
+
+            // Validate and Continue
+            base.validate();
+          }
+          else
+            throw vfe; //rethrow
+        }
+
         pExecutor.accept(base);
       }
     }
