@@ -1,12 +1,16 @@
 package com.github.wglanzer.nbm.actions;
 
 import com.github.wglanzer.nbm.liquibase.ILiquibaseProvider;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
 import org.openide.awt.*;
+import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.SystemAction;
+import org.openide.windows.TopComponent;
 
+import java.awt.event.ActionEvent;
 import java.util.*;
 
 /**
@@ -18,19 +22,34 @@ import java.util.*;
 @ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.DropAllAndUpdateAction")
 @ActionRegistration(displayName = "#CTL_DropAllAndUpdateAction", lazy = false)
 @ActionReferences({
-    @ActionReference(path = "Actions/Project/Liquibase/XML", position = 1100),
+    @ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1100),
     //@ActionReference(path = "Toolbars/Liquibase", position = 0)
 })
 public class DropAllAndUpdateAction extends AbstractLiquibaseAction
 {
-
   @Override
-  public void actionPerformed(@NotNull ILiquibaseProvider pProvider) throws Exception
+  public void execute(@NotNull ILiquibaseProvider pProvider) throws Exception
   {
     _DelegateProvider provider = new _DelegateProvider(pProvider);
-    SystemAction.get(DropAllAction.class).actionPerformed(provider); //Execute DropAll
-    SystemAction.get(UpdateAction.class).actionPerformed(provider); //Execute Update
+    SystemAction.get(DropAllAction.class).execute(provider); //Execute DropAll
+    SystemAction.get(UpdateAction.class).execute(provider); //Execute Update
     provider.execute();
+  }
+
+  @Override
+  protected void performAction(Node[] activatedNodes)
+  {
+    perform();
+  }
+
+  @Override
+  protected boolean enable(Node[] activatedNodes)
+  {
+    Node[] nodes = TopComponent.getRegistry().getActivatedNodes();
+
+    boolean dropAllenabled = SystemAction.get(DropAllAction.class).enable(nodes);
+    boolean updateEnabled = SystemAction.get(UpdateAction.class).enable(nodes);
+    return dropAllenabled & updateEnabled;
   }
 
   @Override

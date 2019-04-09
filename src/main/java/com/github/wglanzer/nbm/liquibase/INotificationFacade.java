@@ -2,6 +2,8 @@ package com.github.wglanzer.nbm.liquibase;
 
 import org.jetbrains.annotations.*;
 
+import java.awt.event.ActionListener;
+
 /**
  * Facade to display Notifications as a balloon
  *
@@ -17,7 +19,7 @@ public interface INotificationFacade
    * @param pMessage     Message
    * @param pAutoDispose <tt>true</tt> if the balloon should dispose automatically after a couple of seconds
    */
-  void notify(@Nullable String pTitle, @Nullable String pMessage, boolean pAutoDispose);
+  void notify(@Nullable String pTitle, @Nullable String pMessage, boolean pAutoDispose, @Nullable ActionListener pListener);
 
   /**
    * Displays an error as a balloon

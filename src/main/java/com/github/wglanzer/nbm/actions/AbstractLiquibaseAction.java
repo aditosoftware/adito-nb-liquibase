@@ -2,6 +2,7 @@ package com.github.wglanzer.nbm.actions;
 
 import com.github.wglanzer.nbm.ILiquibaseConstants;
 import com.github.wglanzer.nbm.liquibase.*;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
 import io.reactivex.disposables.Disposable;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +24,11 @@ import java.util.stream.Stream;
  * @author w.glanzer, 25.10.2018
  */
 @NbBundle.Messages("LBL_ActionProgress=Executing Liquibase Action...")
-public abstract class AbstractLiquibaseAction extends SystemAction
+public abstract class AbstractLiquibaseAction extends NodeAction
 {
 
   private static final IActionEnvironment _ENVIRONMENT = ILiquibaseConstants.INJECTOR.getInstance(IActionEnvironment.class);
-  private static final INotificationFacade _NOTIFICATION_FACADE = ILiquibaseConstants.INJECTOR.getInstance(INotificationFacade.class);
+  public static final INotificationFacade _NOTIFICATION_FACADE = ILiquibaseConstants.INJECTOR.getInstance(INotificationFacade.class);
   private final Disposable enabledDisposable;
   private final AtomicReference<ILiquibaseProvider> liquibaseProvider = new AtomicReference<>();
 
@@ -35,21 +36,20 @@ public abstract class AbstractLiquibaseAction extends SystemAction
   {
     enabledDisposable = _ENVIRONMENT.activeLiquibase()
         .subscribe(pL -> {
-          setEnabled(pL.isPresent());
+          //setEnabled(pL.isPresent());
           liquibaseProvider.set(pL.orElse(null));
         });
   }
 
-  @Override
-  public void actionPerformed(ActionEvent ev)
+  void perform()
   {
     RequestProcessor.getDefault().post(() -> {
       try
       {
         ILiquibaseProvider provider = new _ProgressLiquibaseProvider(liquibaseProvider::get);
-        actionPerformed(provider);
+        execute(provider);
       }
-      catch(CancellationException cancelled)
+      catch (CancellationException cancelled)
       {
         //nothing
       }
@@ -59,6 +59,7 @@ public abstract class AbstractLiquibaseAction extends SystemAction
       }
     });
   }
+  
 
   @Override
   public HelpCtx getHelpCtx()
@@ -75,7 +76,7 @@ public abstract class AbstractLiquibaseAction extends SystemAction
     return _NOTIFICATION_FACADE;
   }
 
-  protected abstract void actionPerformed(@NotNull ILiquibaseProvider pLiquibase) throws Exception;
+  protected abstract void execute(@NotNull ILiquibaseProvider pLiquibase) throws Exception;
 
   /**
    * Folder for Liquibase-Actions in Project Menu
@@ -83,8 +84,8 @@ public abstract class AbstractLiquibaseAction extends SystemAction
   @NbBundle.Messages("CTL_LiquibaseAction=Liquibase")
   @ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.AbstractLiquibaseAction.LiquibaseActionFolder")
   @ActionRegistration(displayName = "#CTL_LiquibaseAction", lazy = false)
-  @ActionReference(path = "Loaders/text/xml-mime/Actions", position = 1650)
-  public static final class LiquibaseActionFolder extends AbstractAction implements ActionListener, Presenter.Popup
+  @ActionReference(path = LiquiConstants.ACTION_FOLDER, position = 1650)
+  public static final class LiquibaseActionFolder extends AbstractAction implements ILiquibaseActionFolder, ActionListener, Presenter.Popup
   {
 
     @Override
@@ -97,8 +98,8 @@ public abstract class AbstractLiquibaseAction extends SystemAction
     public JMenuItem getPopupPresenter()
     {
       JMenu main = new JMenu(Bundle.CTL_LiquibaseAction());
-      Stream.of(Utilities.actionsToPopup(Utilities.actionsForPath("Actions/Project/Liquibase/XML").toArray(new Action[0]), Lookup.EMPTY)
-          .getComponents())
+      Stream.of(Utilities.actionsToPopup(Utilities.actionsForPath(LiquiConstants.ACTION_REFERENCE).toArray(new Action[0]), Lookup.EMPTY)
+                    .getComponents())
           .forEach(main::add);
       return main;
     }
@@ -121,7 +122,7 @@ public abstract class AbstractLiquibaseAction extends SystemAction
     public <Ex extends Exception> void executeWith(@NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException
     {
       ILiquibaseProvider provider = delegate.get();
-      if(provider == null)
+      if (provider == null)
         return;
 
       ProgressHandle progressHandle = ProgressHandleFactory.createSystemHandle(Bundle.LBL_ActionProgress());

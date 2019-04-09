@@ -17,10 +17,11 @@ import java.awt.event.ActionListener;
 class NotificationFacadeImpl implements INotificationFacade
 {
 
+
   @Override
-  public void notify(String pTitle, String pMessage, boolean pAutoDispose)
+  public void notify(String pTitle, String pMessage, boolean pAutoDispose, @Nullable ActionListener pListener)
   {
-    _notify(pTitle, pMessage, pAutoDispose, NotificationDisplayer.Priority.NORMAL, null);
+    _notify(pTitle, pMessage, pAutoDispose, NotificationDisplayer.Priority.NORMAL, pListener);
   }
 
   @Override
@@ -47,12 +48,12 @@ class NotificationFacadeImpl implements INotificationFacade
   private String _getRootMessage(Throwable pThrowable)
   {
     Throwable cause = pThrowable.getCause();
-    if(cause != null)
+    if (cause != null)
       return _getRootMessage(cause);
     String msg = pThrowable.getLocalizedMessage();
-    if(msg == null)
+    if (msg == null)
       msg = pThrowable.getMessage();
-    if(msg == null)
+    if (msg == null)
       msg = "exception";
     return msg;
   }
