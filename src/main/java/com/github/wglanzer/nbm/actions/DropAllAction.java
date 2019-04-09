@@ -66,7 +66,7 @@ public class DropAllAction extends AbstractLiquibaseAction
       if (DialogDisplayer.getDefault().notify(descr) == Bundle.BTN_DropAllConfirmation())
       {
         // Execute Action
-       // pLiquibase.dropAll();
+        pLiquibase.dropAll();
         getNotificationFacade().notify(Bundle.LBL_DropSuccess_Title(), Bundle.LBL_DropSuccess_Message(), true,null);
       }
       else

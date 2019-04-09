@@ -33,7 +33,7 @@ public class UpdateAction extends AbstractLiquibaseAction implements ILiquibaseU
   {
     pProvider.executeWith(pLiquibase -> {
       
-      //pLiquibase.update("");
+      pLiquibase.update("");
       
       String message = null;
       Action action = null;
