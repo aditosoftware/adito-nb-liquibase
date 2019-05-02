@@ -14,7 +14,7 @@ import java.awt.event.ActionListener;
  * @author w.glanzer, 31.10.2018
  */
 @Singleton
-class NotificationFacadeImpl implements INotificationFacade
+public class NotificationFacadeImpl implements INotificationFacade
 {
 
 

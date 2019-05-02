@@ -2,19 +2,19 @@ package com.github.wglanzer.nbm.liquibase.impl;
 
 import com.github.wglanzer.nbm.actions.CreateFolderAction;
 import com.github.wglanzer.nbm.liquibase.internal.*;
-import com.github.wglanzer.nbm.util.SelectConnectionPanel;
 import com.google.inject.Singleton;
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
 import info.clearthought.layout.TableLayout;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.db.explorer.*;
 import org.openide.*;
 import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
-import org.openide.util.NbBundle;
+import org.openide.util.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.sql.Connection;
 import java.util.List;
 import java.util.*;
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  * @author w.glanzer, 24.10.2018
  */
 @Singleton
-class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvider
+public class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvider
 {
 
   @Override
@@ -38,7 +38,7 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
         if (pNodes.length != 1)
           return null;
 
-        DatabaseConnection connection = _startDialog(pNodes[0]);//SelectConnectionPanel.selectConnection(true);
+        DatabaseConnection connection = _startDialog(pNodes[0]);
         if (connection == null)
           return null;
         ConnectionManager.getDefault().connect(connection);
@@ -81,13 +81,18 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
     return null;
   }
 
+  /**
+   * Opens a dialog for selecting a database connection.
+   * @param pNode contains a database connection.
+   * @return the selected connection or null.
+   */
   private DatabaseConnection _startDialog(Node pNode)
   {
-    ConnectionPanel panel = new ConnectionPanel(pNode);
-    DialogDescriptor desc = new DialogDescriptor(panel, NbBundle.getMessage(SelectConnectionPanel.class, "MSG_SelectConnection"));
+    _ConnectionPanel panel = new _ConnectionPanel(pNode);
+    DialogDescriptor desc = new DialogDescriptor(panel, NbBundle.getMessage(ActivatedNodesProviderImpl.class, "MSG_SelectConnection"));
 
     Dialog dialog = DialogDisplayer.getDefault().createDialog(desc);
-    dialog.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(SelectConnectionPanel.class, "ACSD_SelectConnection"));
+    dialog.getAccessibleContext().setAccessibleDescription(NbBundle.getMessage(ActivatedNodesProviderImpl.class, "ACSD_SelectConnection"));
     dialog.setVisible(true);
     dialog.dispose();
 
@@ -97,11 +102,12 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
     return null;
   }
 
-  private class ConnectionPanel extends JPanel
+  private class _ConnectionPanel extends JPanel
   {
     private ConnectionModel model;
+    private JLabel messageLabel;
 
-    ConnectionPanel(Node pNode)
+    _ConnectionPanel(Node pNode)
     {
       double fill = TableLayout.FILL;
       double pref = TableLayout.PREFERRED;
@@ -113,11 +119,14 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
                        4,
                        pref,
                        gap,
-                       };
+                       pref,
+                       gap
+      };
 
 
       setLayout(new TableLayout(cols, rows));
       add(_createComboBox(pNode), "1,1");
+      add(_createMessageLabel(), "1,5");
       add(_createCheckBox(), "1,3");
 
       setPreferredSize(new Dimension(520, 120));
@@ -125,13 +134,34 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
 
     private JComponent _createComboBox(Node pNode)
     {
+      IJDBCURLTester tester = Lookup.getDefault().lookup(IJDBCURLTester.class);
       model = new ConnectionModel(pNode);
-      return new JComboBox(model);
+      JComboBox combo = new JComboBox(model);
+      combo.addItemListener(e -> {
+        messageLabel.setText(" ");
+        if (e.getStateChange() == ItemEvent.SELECTED)
+        {
+          DatabaseConnection connection = model.getConnection();
+          if (connection != null)
+          {
+            IJDBCURLTester.EResult result = tester.test(connection.getDatabaseURL());
+            switch (result)
+            {
+              case POTENTIALLY_REMOTE:
+                messageLabel.setText(NbBundle.getMessage(ActivatedNodesProviderImpl.class, "PotentiallyRemote"));
+                break;
+              case REMOTE:
+                messageLabel.setText(NbBundle.getMessage(ActivatedNodesProviderImpl.class, "Remote"));
+                break;
+            }
+          }
+        }
+      });
+      return combo;
     }
 
     private JCheckBox _createCheckBox()
     {
-      
       JCheckBox cb = new JCheckBox(NbBundle.getMessage(CreateFolderAction.class, "ShowAllConnections"));
       cb.setSelected(false);
       model.showAllConnections(cb.isSelected());
@@ -139,6 +169,14 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
       cb.addActionListener(e -> model.showAllConnections(cb.isSelected()));
 
       return cb;
+    }
+
+    private JLabel _createMessageLabel()
+    {
+      messageLabel = new JLabel();
+      messageLabel.setFont(messageLabel.getFont().deriveFont(Font.BOLD));
+      messageLabel.setForeground(Color.YELLOW);
+      return messageLabel;
     }
 
     DatabaseConnection getConnection()
@@ -164,7 +202,6 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
         {
           unnamedConnections.add(new Row(null, c));
         }
-
       }
 
       void showAllConnections(boolean pShow)
@@ -205,12 +242,12 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
 
       private class Row
       {
-        private final String unknown = NbBundle.getMessage(CreateFolderAction.class, "UnknownOwner");
         final String name;
         final DatabaseConnection connection;
 
         Row(String pName, DatabaseConnection pConnection)
         {
+          String unknown = NbBundle.getMessage(CreateFolderAction.class, "UnknownOwner");
           name = (pName != null) ? pName : unknown;
           connection = pConnection;
         }
@@ -221,8 +258,6 @@ class ActivatedNodesProviderImpl implements IConnectionProvider, IChangelogProvi
           return "  [" + name + "]    " + connection.getDisplayName();
         }
       }
-
-
     }
   }
 }

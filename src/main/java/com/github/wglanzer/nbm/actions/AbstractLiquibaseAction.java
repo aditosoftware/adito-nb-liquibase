@@ -1,20 +1,23 @@
 package com.github.wglanzer.nbm.actions;
 
-import com.github.wglanzer.nbm.ILiquibaseConstants;
 import com.github.wglanzer.nbm.liquibase.*;
+import com.github.wglanzer.nbm.liquibase.impl.*;
+import com.github.wglanzer.nbm.liquibase.internal.ILiquibaseFactory;
+import com.github.wglanzer.nbm.util.Util;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
-import io.reactivex.disposables.Disposable;
 import liquibase.exception.LiquibaseException;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
 import org.netbeans.api.progress.*;
 import org.openide.awt.*;
+import org.openide.nodes.Node;
 import org.openide.util.*;
 import org.openide.util.actions.*;
+import org.openide.windows.TopComponent;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.sql.Connection;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -27,27 +30,21 @@ import java.util.stream.Stream;
 public abstract class AbstractLiquibaseAction extends NodeAction
 {
 
-  private static final IActionEnvironment _ENVIRONMENT = ILiquibaseConstants.INJECTOR.getInstance(IActionEnvironment.class);
-  public static final INotificationFacade _NOTIFICATION_FACADE = ILiquibaseConstants.INJECTOR.getInstance(INotificationFacade.class);
-  private final Disposable enabledDisposable;
-  private final AtomicReference<ILiquibaseProvider> liquibaseProvider = new AtomicReference<>();
-
-  AbstractLiquibaseAction()
+  @Override
+  protected void performAction(Node[] activatedNodes)
   {
-    enabledDisposable = _ENVIRONMENT.activeLiquibase()
-        .subscribe(pL -> {
-          //setEnabled(pL.isPresent());
-          liquibaseProvider.set(pL.orElse(null));
-        });
-  }
+    ActivatedNodesProviderImpl impl = new ActivatedNodesProviderImpl();
+    Supplier<Connection> connSup = impl.findConnectionInNodes(getActivatedNodes(activatedNodes));
+    String changeLogFile = impl.findChangeLogFile(getActivatedNodes(activatedNodes));
 
-  void perform()
-  {
+    ILiquibaseFactory f = new LiquibaseFactoryImpl();
+    ILiquibaseProvider provider = f.create(connSup, changeLogFile);
+
     RequestProcessor.getDefault().post(() -> {
       try
       {
-        ILiquibaseProvider provider = new _ProgressLiquibaseProvider(liquibaseProvider::get);
-        execute(provider);
+        ILiquibaseProvider _provider = new _ProgressLiquibaseProvider(() -> provider);
+        execute(_provider);
       }
       catch (CancellationException cancelled)
       {
@@ -59,7 +56,25 @@ public abstract class AbstractLiquibaseAction extends NodeAction
       }
     });
   }
-  
+
+
+  Node[] getActivatedNodes(@Nullable Node[] pActivatedNodes)
+  {
+    if ((pActivatedNodes != null) && (pActivatedNodes.length > 0))
+      return pActivatedNodes;
+
+    return TopComponent.getRegistry().getActivatedNodes();
+  }
+
+  @Override
+  protected boolean enable(Node[] activatedNodes)
+  {
+    Node[] nodes = getActivatedNodes(activatedNodes);//TopComponent.getRegistry().getActivatedNodes();
+    if (nodes.length == 1)
+      return Util.existsChangelogFile(nodes[0]) && Util.containsConnection(nodes[0]);
+
+    return false;
+  }
 
   @Override
   public HelpCtx getHelpCtx()
@@ -71,9 +86,9 @@ public abstract class AbstractLiquibaseAction extends NodeAction
    * @return NotificationFacade to display notifications with a balloon
    */
   @NotNull
-  protected final INotificationFacade getNotificationFacade()
+  final INotificationFacade getNotificationFacade()
   {
-    return _NOTIFICATION_FACADE;
+    return new NotificationFacadeImpl();
   }
 
   protected abstract void execute(@NotNull ILiquibaseProvider pLiquibase) throws Exception;
@@ -98,7 +113,8 @@ public abstract class AbstractLiquibaseAction extends NodeAction
     public JMenuItem getPopupPresenter()
     {
       JMenu main = new JMenu(Bundle.CTL_LiquibaseAction());
-      Stream.of(Utilities.actionsToPopup(Utilities.actionsForPath(LiquiConstants.ACTION_REFERENCE).toArray(new Action[0]), Lookup.EMPTY)
+      Stream.of(Utilities.actionsToPopup(Utilities.actionsForPath(LiquiConstants.ACTION_REFERENCE)
+                                             .toArray(new Action[0]), Lookup.EMPTY)
                     .getComponents())
           .forEach(main::add);
       return main;
@@ -109,11 +125,11 @@ public abstract class AbstractLiquibaseAction extends NodeAction
   /**
    * LiquibaseProvider delegate to show progressbar
    */
-  private static final class _ProgressLiquibaseProvider implements ILiquibaseProvider
+  public static final class _ProgressLiquibaseProvider implements ILiquibaseProvider
   {
     private final Supplier<ILiquibaseProvider> delegate;
 
-    public _ProgressLiquibaseProvider(Supplier<ILiquibaseProvider> pDelegate)
+    _ProgressLiquibaseProvider(Supplier<ILiquibaseProvider> pDelegate)
     {
       delegate = pDelegate;
     }

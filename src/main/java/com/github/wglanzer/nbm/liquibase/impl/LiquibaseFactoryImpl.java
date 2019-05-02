@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 @NbBundle.Messages({
     "LBL_ContinueValidation=Clear CheckSums before Validation?"
 })
-class LiquibaseFactoryImpl implements ILiquibaseFactory
+public class LiquibaseFactoryImpl implements ILiquibaseFactory
 {
 
   @NotNull
@@ -38,7 +38,7 @@ class LiquibaseFactoryImpl implements ILiquibaseFactory
     private final Supplier<Connection> connectionSupplier;
     private final String changeLogFile;
 
-    public _Provider(Supplier<Connection> pConnectionSupplier, String pChangeLogFile)
+     _Provider(Supplier<Connection> pConnectionSupplier, String pChangeLogFile)
     {
       connectionSupplier = pConnectionSupplier;
       changeLogFile = pChangeLogFile;

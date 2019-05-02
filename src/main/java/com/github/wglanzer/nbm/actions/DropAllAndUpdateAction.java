@@ -8,9 +8,7 @@ import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 import org.openide.util.actions.SystemAction;
-import org.openide.windows.TopComponent;
 
-import java.awt.event.ActionEvent;
 import java.util.*;
 
 /**
@@ -21,10 +19,7 @@ import java.util.*;
 @NbBundle.Messages("CTL_DropAllAndUpdateAction=Drop All & Update...")
 @ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.DropAllAndUpdateAction")
 @ActionRegistration(displayName = "#CTL_DropAllAndUpdateAction", lazy = false)
-@ActionReferences({
-    @ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1100),
-    //@ActionReference(path = "Toolbars/Liquibase", position = 0)
-})
+@ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1100)
 public class DropAllAndUpdateAction extends AbstractLiquibaseAction
 {
   @Override
@@ -37,18 +32,10 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
   }
 
   @Override
-  protected void performAction(Node[] activatedNodes)
-  {
-    perform();
-  }
-
-  @Override
   protected boolean enable(Node[] activatedNodes)
   {
-    Node[] nodes = TopComponent.getRegistry().getActivatedNodes();
-
-    boolean dropAllenabled = SystemAction.get(DropAllAction.class).enable(nodes);
-    boolean updateEnabled = SystemAction.get(UpdateAction.class).enable(nodes);
+    boolean dropAllenabled = SystemAction.get(DropAllAction.class).enable(activatedNodes);
+    boolean updateEnabled = SystemAction.get(UpdateAction.class).enable(activatedNodes);
     return dropAllenabled & updateEnabled;
   }
 
@@ -66,7 +53,7 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
     private ILiquibaseProvider delegate;
     private List<ILiquibaseConsumer<? extends Exception>> consumers = new ArrayList<>();
 
-    public _DelegateProvider(ILiquibaseProvider pDelegate)
+     _DelegateProvider(ILiquibaseProvider pDelegate)
     {
       delegate = pDelegate;
     }
@@ -77,7 +64,7 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
       consumers.add(pExecutor);
     }
 
-    public void execute() throws Exception
+     void execute() throws Exception
     {
       try
       {

@@ -1,16 +1,12 @@
 package com.github.wglanzer.nbm.actions;
 
 import com.github.wglanzer.nbm.liquibase.ILiquibaseProvider;
-import com.github.wglanzer.nbm.util.Util;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
 import org.jetbrains.annotations.NotNull;
 import org.openide.*;
 import org.openide.awt.*;
-import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
-import org.openide.windows.TopComponent;
 
-import java.awt.event.ActionEvent;
 import java.util.concurrent.CancellationException;
 
 /**
@@ -28,30 +24,9 @@ import java.util.concurrent.CancellationException;
 })
 @ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.DropAllAction")
 @ActionRegistration(displayName = "#CTL_DropAllAction", lazy = false)
-@ActionReferences({
-    @ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1050, separatorBefore = 1000),
-    //@ActionReference(path = "Toolbars/Liquibase", position = 1000)
-})
+@ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1050, separatorBefore = 1000)
 public class DropAllAction extends AbstractLiquibaseAction
 {
-  @Override
-  protected void performAction(Node[] activatedNodes)
-  {
-    perform();
-    //actionPerformed((ActionEvent) null);
-  }
-
-  @Override
-  protected boolean enable(Node[] activatedNodes)
-  {
-    Node[] nodes = TopComponent.getRegistry().getActivatedNodes();
-
-    if (nodes.length==1)
-    {
-      return Util.containsConnection(nodes[0]) & Util.existsChangelogFile(nodes[0]);
-    }
-   return false; 
-  }
 
   @Override
   public void execute(@NotNull ILiquibaseProvider pProvider) throws Exception

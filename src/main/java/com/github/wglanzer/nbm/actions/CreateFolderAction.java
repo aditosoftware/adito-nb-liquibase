@@ -11,31 +11,25 @@ import org.openide.awt.*;
 import org.openide.loaders.DataFolder;
 import org.openide.nodes.Node;
 import org.openide.util.*;
-import org.openide.windows.TopComponent;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.nio.file.Files;
 
-
+/**
+ * Opens a dialog for creating a directory.
+ */
 @ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.CreateFolderAction")
-@ActionRegistration(displayName = "--Create Folder", lazy = false)
-@ActionReferences({
-    @ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1250),
-})
+@ActionRegistration(displayName = "Create Folder", lazy = false)
+@ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1250)
 public class CreateFolderAction extends AbstractLiquibaseAction
 {
-  @Override
-  protected void performAction(Node[] activatedNodes)
-  {
-    perform();
-  }
-
+  
   @Override
   protected void execute(@NotNull ILiquibaseProvider pLiquibase) throws Exception
   {
-    Node[] nodes = TopComponent.getRegistry().getActivatedNodes();
+    Node[] nodes = getActivatedNodes(null);
     if (nodes.length == 1)
     {
       DataFolder folder = nodes[0].getLookup().lookup(DataFolder.class);
@@ -71,17 +65,7 @@ public class CreateFolderAction extends AbstractLiquibaseAction
 
     return null;
   }
-
-  @Override
-  protected boolean enable(Node[] activatedNodes)
-  {
-    Node[] nodes = TopComponent.getRegistry().getActivatedNodes();
-    if (nodes.length == 1)
-      return Util.getFolderPath(nodes[0]) != null;
-
-    return false;
-  }
-
+  
   @Override
   public String getName()
   {
@@ -113,9 +97,8 @@ public class CreateFolderAction extends AbstractLiquibaseAction
                        gap,
                        };
 
-
       setLayout(new TableLayout(cols, rows));
-      add(new JLabel("--Enter new folder name"), "1,1");
+      add(new JLabel(NbBundle.getMessage(CreateFolderAction.class, "EnterNewName")), "1,1");
       add(_createCheckBox(), "1,3");
 
       setPreferredSize(new Dimension(320, 80));
@@ -132,8 +115,6 @@ public class CreateFolderAction extends AbstractLiquibaseAction
     {
       return textField.getText();
     }
-
-
   }
 
 }
