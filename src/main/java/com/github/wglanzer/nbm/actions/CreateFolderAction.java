@@ -25,7 +25,12 @@ import java.nio.file.Files;
 @ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1250)
 public class CreateFolderAction extends AbstractLiquibaseAction
 {
-  
+  @Override
+  protected boolean enable(Node[] activatedNodes)
+  {
+    return true;
+  }
+
   @Override
   protected void execute(@NotNull ILiquibaseProvider pLiquibase) throws Exception
   {
