@@ -83,6 +83,7 @@ public class ActivatedNodesProviderImpl implements IConnectionProvider, IChangel
 
   /**
    * Opens a dialog for selecting a database connection.
+   *
    * @param pNode contains a database connection.
    * @return the selected connection or null.
    */
@@ -142,7 +143,7 @@ public class ActivatedNodesProviderImpl implements IConnectionProvider, IChangel
         if (e.getStateChange() == ItemEvent.SELECTED)
         {
           DatabaseConnection connection = model.getConnection();
-          if (connection != null)
+          if ((connection != null) & (tester != null))
           {
             IJDBCURLTester.EResult result = tester.test(connection.getDatabaseURL());
             switch (result)
