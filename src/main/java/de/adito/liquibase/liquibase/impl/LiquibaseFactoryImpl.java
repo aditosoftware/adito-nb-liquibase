@@ -1,18 +1,20 @@
 package de.adito.liquibase.liquibase.impl;
 
+import com.google.inject.Singleton;
 import de.adito.liquibase.liquibase.ILiquibaseProvider;
 import de.adito.liquibase.liquibase.internal.ILiquibaseFactory;
-import com.google.inject.Singleton;
 import liquibase.Liquibase;
 import liquibase.database.*;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.*;
 import liquibase.resource.FileSystemResourceAccessor;
 import org.jetbrains.annotations.NotNull;
+import org.netbeans.api.project.*;
 import org.openide.*;
 import org.openide.util.NbBundle;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.function.Supplier;
 
@@ -36,12 +38,17 @@ public class LiquibaseFactoryImpl implements ILiquibaseFactory
   private static class _Provider implements ILiquibaseProvider
   {
     private final Supplier<Connection> connectionSupplier;
-    private final String changeLogFile;
+    private final FileSystemResourceAccessor fileSystemResourceAccessor;
+    private final String relativeChangeLogFile;
 
-     _Provider(Supplier<Connection> pConnectionSupplier, String pChangeLogFile)
+    _Provider(Supplier<Connection> pConnectionSupplier, String pChangeLogFile)
     {
+      Project project = FileOwnerQuery.getOwner(new File(pChangeLogFile).toURI());
+      String basePath = project != null ? project.getProjectDirectory().getPath() : new File(pChangeLogFile).getParentFile().getAbsolutePath();
+
       connectionSupplier = pConnectionSupplier;
-      changeLogFile = pChangeLogFile;
+      fileSystemResourceAccessor = new FileSystemResourceAccessor(basePath);
+      relativeChangeLogFile = Paths.get(basePath).relativize(Paths.get(pChangeLogFile)).toFile().getPath();
     }
 
     @Override
@@ -52,8 +59,7 @@ public class LiquibaseFactoryImpl implements ILiquibaseFactory
       {
         JdbcConnection con = new JdbcConnection(jdbcCon);
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-        String basePath = new File(changeLogFile).getParentFile().getAbsolutePath();
-        Liquibase base = new Liquibase(changeLogFile, new FileSystemResourceAccessor(basePath), database);
+        Liquibase base = new Liquibase(relativeChangeLogFile, fileSystemResourceAccessor, database);
 
         try
         {
