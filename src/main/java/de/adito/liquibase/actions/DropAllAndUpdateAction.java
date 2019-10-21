@@ -1,13 +1,12 @@
-package com.github.wglanzer.nbm.actions;
+package de.adito.liquibase.actions;
 
-import com.github.wglanzer.nbm.liquibase.ILiquibaseProvider;
+import de.adito.liquibase.liquibase.ILiquibaseProvider;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
-import org.openide.util.actions.SystemAction;
 
 import java.util.*;
 
@@ -26,16 +25,16 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
   public void execute(@NotNull ILiquibaseProvider pProvider) throws Exception
   {
     _DelegateProvider provider = new _DelegateProvider(pProvider);
-    SystemAction.get(DropAllAction.class).execute(provider); //Execute DropAll
-    SystemAction.get(UpdateAction.class).execute(provider); //Execute Update
+    get(DropAllAction.class).execute(provider); //Execute DropAll
+    get(UpdateAction.class).execute(provider); //Execute Update
     provider.execute();
   }
 
   @Override
   protected boolean enable(Node[] activatedNodes)
   {
-    boolean dropAllenabled = SystemAction.get(DropAllAction.class).enable(activatedNodes);
-    boolean updateEnabled = SystemAction.get(UpdateAction.class).enable(activatedNodes);
+    boolean dropAllenabled = get(DropAllAction.class).enable(activatedNodes);
+    boolean updateEnabled = get(UpdateAction.class).enable(activatedNodes);
     return dropAllenabled & updateEnabled;
   }
 

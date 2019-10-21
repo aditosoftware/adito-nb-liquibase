@@ -1,6 +1,6 @@
-package com.github.wglanzer.nbm.actions;
+package de.adito.liquibase.actions;
 
-import com.github.wglanzer.nbm.liquibase.ILiquibaseProvider;
+import de.adito.liquibase.liquibase.ILiquibaseProvider;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
 import org.jetbrains.annotations.NotNull;
 import org.openide.*;

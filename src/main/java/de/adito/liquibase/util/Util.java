@@ -1,4 +1,4 @@
-package com.github.wglanzer.nbm.util;
+package de.adito.liquibase.util;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
 import org.netbeans.api.db.explorer.DatabaseConnection;

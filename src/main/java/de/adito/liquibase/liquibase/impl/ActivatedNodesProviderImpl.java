@@ -1,9 +1,9 @@
-package com.github.wglanzer.nbm.liquibase.impl;
+package de.adito.liquibase.liquibase.impl;
 
-import com.github.wglanzer.nbm.actions.CreateFolderAction;
-import com.github.wglanzer.nbm.liquibase.internal.*;
+import de.adito.liquibase.actions.CreateFolderAction;
 import com.google.inject.Singleton;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
+import de.adito.liquibase.liquibase.internal.*;
 import info.clearthought.layout.TableLayout;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.db.explorer.*;

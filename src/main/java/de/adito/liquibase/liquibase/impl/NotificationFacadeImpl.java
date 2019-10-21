@@ -1,6 +1,6 @@
-package com.github.wglanzer.nbm.liquibase.impl;
+package de.adito.liquibase.liquibase.impl;
 
-import com.github.wglanzer.nbm.liquibase.INotificationFacade;
+import de.adito.liquibase.liquibase.INotificationFacade;
 import com.google.common.base.Strings;
 import com.google.inject.Singleton;
 import org.jetbrains.annotations.*;

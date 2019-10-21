@@ -1,9 +1,9 @@
-package com.github.wglanzer.nbm.actions;
+package de.adito.liquibase.actions;
 
-import com.github.wglanzer.nbm.liquibase.*;
-import com.github.wglanzer.nbm.liquibase.impl.*;
-import com.github.wglanzer.nbm.liquibase.internal.ILiquibaseFactory;
-import com.github.wglanzer.nbm.util.Util;
+import de.adito.liquibase.liquibase.*;
+import de.adito.liquibase.liquibase.impl.*;
+import de.adito.liquibase.liquibase.internal.ILiquibaseFactory;
+import de.adito.liquibase.util.Util;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.*;

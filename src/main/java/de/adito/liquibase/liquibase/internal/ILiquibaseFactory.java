@@ -1,6 +1,6 @@
-package com.github.wglanzer.nbm.liquibase.internal;
+package de.adito.liquibase.liquibase.internal;
 
-import com.github.wglanzer.nbm.liquibase.ILiquibaseProvider;
+import de.adito.liquibase.liquibase.ILiquibaseProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;

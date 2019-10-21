@@ -1,4 +1,4 @@
-package com.github.wglanzer.nbm.liquibase.internal;
+package de.adito.liquibase.liquibase.internal;
 
 import org.openide.nodes.Node;
 

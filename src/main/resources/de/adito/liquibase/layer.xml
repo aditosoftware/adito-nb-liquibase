@@ -6,12 +6,12 @@
   <folder name="Templates">
     <folder name="Liquibase">
       <file name="changelog.xml" url="changelog.xml">
-        <attr name="SystemFileSystem.localizingBundle" stringvalue="com.github.wglanzer.nbm.actions.Bundle"/>
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="de.adito.liquibase.actions.Bundle"/>
         <attr name="template" boolvalue="true"/>
         <attr name="targetName" stringvalue="changelog"/>
       </file>
       <file name="changeset.xml" url="changeset.xml">
-        <attr name="SystemFileSystem.localizingBundle" stringvalue="com.github.wglanzer.nbm.actions.Bundle"/>
+        <attr name="SystemFileSystem.localizingBundle" stringvalue="de.adito.liquibase.actions.Bundle"/>
         <attr name="template" boolvalue="true"/>
         <attr name="targetName" stringvalue="changeset"/>
       </file>

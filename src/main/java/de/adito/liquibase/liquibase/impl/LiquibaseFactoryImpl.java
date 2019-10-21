@@ -1,7 +1,7 @@
-package com.github.wglanzer.nbm.liquibase.impl;
+package de.adito.liquibase.liquibase.impl;
 
-import com.github.wglanzer.nbm.liquibase.ILiquibaseProvider;
-import com.github.wglanzer.nbm.liquibase.internal.ILiquibaseFactory;
+import de.adito.liquibase.liquibase.ILiquibaseProvider;
+import de.adito.liquibase.liquibase.internal.ILiquibaseFactory;
 import com.google.inject.Singleton;
 import liquibase.Liquibase;
 import liquibase.database.*;

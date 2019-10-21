@@ -1,7 +1,7 @@
-package com.github.wglanzer.nbm.actions;
+package de.adito.liquibase.actions;
 
-import com.github.wglanzer.nbm.liquibase.ILiquibaseProvider;
-import com.github.wglanzer.nbm.util.Util;
+import de.adito.liquibase.liquibase.ILiquibaseProvider;
+import de.adito.liquibase.util.Util;
 import com.google.common.base.Strings;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
 import info.clearthought.layout.TableLayout;

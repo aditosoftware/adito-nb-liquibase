@@ -1,4 +1,4 @@
-package com.github.wglanzer.nbm.util;
+package de.adito.liquibase.util;
 
 /**
  * @author t.tasior, 15.03.2019

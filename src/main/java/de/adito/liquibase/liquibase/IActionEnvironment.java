@@ -1,4 +1,4 @@
-package com.github.wglanzer.nbm.liquibase;
+package de.adito.liquibase.liquibase;
 
 import io.reactivex.Observable;
 import org.jetbrains.annotations.NotNull;
