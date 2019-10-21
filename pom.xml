@@ -16,7 +16,7 @@
   <packaging>nbm</packaging>
 
   <properties>
-    <netbeans.version>RELEASE82</netbeans.version>
+    <netbeans.version>RELEASE111</netbeans.version>
   </properties>
 
   <dependencies>
@@ -24,7 +24,7 @@
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
-      <version>3.6.3</version>
+      <version>3.8.0</version>
     </dependency>
 
     <dependency>
