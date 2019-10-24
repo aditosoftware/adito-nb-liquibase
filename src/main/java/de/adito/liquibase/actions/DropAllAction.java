@@ -1,7 +1,7 @@
 package de.adito.liquibase.actions;
 
-import de.adito.liquibase.liquibase.ILiquibaseProvider;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
+import de.adito.liquibase.liquibase.ILiquibaseProvider;
 import org.jetbrains.annotations.NotNull;
 import org.openide.*;
 import org.openide.awt.*;
@@ -16,7 +16,7 @@ import java.util.concurrent.CancellationException;
  */
 @NbBundle.Messages({
     "CTL_DropAllAction=Drop All...",
-    "LBL_DropAllConfirmation=Do you really want to drop all data from the selected database?",
+    "LBL_DropAllConfirmation=Do you really want to drop all tables from the selected database?",
     "LBL_DropAllConfirmation_Title=Drop All Confirmation",
     "BTN_DropAllConfirmation=Drop All",
     "LBL_DropSuccess_Title=Drop Success",
