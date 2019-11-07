@@ -37,7 +37,7 @@ public class DropAllAction extends AbstractLiquibaseAction
       NotifyDescriptor descr = new NotifyDescriptor(Bundle.LBL_DropAllConfirmation(), Bundle.LBL_DropAllConfirmation_Title(),
                                                     NotifyDescriptor.OK_CANCEL_OPTION, NotifyDescriptor.QUESTION_MESSAGE,
                                                     new Object[]{Bundle.BTN_DropAllConfirmation(), NotifyDescriptor.CANCEL_OPTION},
-                                                    Bundle.BTN_DropAllConfirmation());
+                                                    NotifyDescriptor.CANCEL_OPTION);
       if (DialogDisplayer.getDefault().notify(descr) == Bundle.BTN_DropAllConfirmation())
       {
         // Execute Action
