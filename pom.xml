@@ -170,7 +170,7 @@
         <version>4.3-SNAPSHOT</version>
         <extensions>true</extensions>
         <configuration>
-          <sourceManifestFile>src/main/nbm/MANIFEST.mf</sourceManifestFile>
+          <sourceManifestFile>src/main/nbm/MANIFEST.MF</sourceManifestFile>
           <netbeansInstallation>C:/Program Files/NetBeans 8.2</netbeansInstallation>
           <additionalArguments>-J"-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:8000,suspend=y"</additionalArguments>
         </configuration>
