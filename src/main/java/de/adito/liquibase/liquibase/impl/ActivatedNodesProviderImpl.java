@@ -1,8 +1,8 @@
 package de.adito.liquibase.liquibase.impl;
 
-import de.adito.liquibase.actions.CreateFolderAction;
 import com.google.inject.Singleton;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
+import de.adito.liquibase.actions.CreateFolderAction;
 import de.adito.liquibase.liquibase.internal.*;
 import info.clearthought.layout.TableLayout;
 import org.jetbrains.annotations.*;
@@ -164,7 +164,7 @@ public class ActivatedNodesProviderImpl implements IConnectionProvider, IChangel
     private JCheckBox _createCheckBox()
     {
       JCheckBox cb = new JCheckBox(NbBundle.getMessage(CreateFolderAction.class, "ShowAllConnections"));
-      cb.setSelected(false);
+      cb.setSelected(model.namedConnections.isEmpty()); // activate per default, if no named connection is found
       model.showAllConnections(cb.isSelected());
 
       cb.addActionListener(e -> model.showAllConnections(cb.isSelected()));

@@ -1,7 +1,7 @@
 package de.adito.liquibase.util;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
-import org.netbeans.api.db.explorer.DatabaseConnection;
+import org.netbeans.api.db.explorer.*;
 import org.netbeans.api.project.Project;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder;
@@ -68,7 +68,8 @@ public final class Util
    */
   public static boolean containsConnection(Node pNode)
   {
-    return pNode.getLookup().lookup(DatabaseConnection.class) != null;
+    return pNode.getLookup().lookup(DatabaseConnection.class) != null ||
+        ConnectionManager.getDefault().getConnections().length > 0;
   }
 
 }
