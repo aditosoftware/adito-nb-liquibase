@@ -1,8 +1,6 @@
-package de.adito.liquibase.liquibase.impl;
+package de.adito.liquibase.notification;
 
-import de.adito.liquibase.liquibase.INotificationFacade;
 import com.google.common.base.Strings;
-import com.google.inject.Singleton;
 import org.jetbrains.annotations.*;
 import org.openide.awt.*;
 import org.openide.util.Exceptions;
@@ -13,10 +11,8 @@ import java.awt.event.ActionListener;
 /**
  * @author w.glanzer, 31.10.2018
  */
-@Singleton
 public class NotificationFacadeImpl implements INotificationFacade
 {
-
 
   @Override
   public void notify(String pTitle, String pMessage, boolean pAutoDispose, @Nullable ActionListener pListener)

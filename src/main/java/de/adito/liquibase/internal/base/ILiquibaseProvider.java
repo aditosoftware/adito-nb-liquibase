@@ -1,17 +1,31 @@
-package de.adito.liquibase.liquibase;
+package de.adito.liquibase.internal.base;
 
 import liquibase.Liquibase;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 /**
  * Execute Actions on a single, valid Liquibase instance
  *
  * @author w.glanzer, 25.10.2018
  */
-@FunctionalInterface
 public interface ILiquibaseProvider
 {
+
+  /**
+   * Provides a new ILiquibaseProvider instance
+   *
+   * @param pConnectionProvider Provider for the current connection
+   * @param pChangeLogFile      ChangeLog-File
+   * @return the provider
+   */
+  @NotNull
+  static ILiquibaseProvider getInstance(@NotNull IConnectionProvider pConnectionProvider, @NotNull File pChangeLogFile)
+  {
+    return new LiquibaseProviderImpl(pConnectionProvider, pChangeLogFile);
+  }
 
   /**
    * Execute an Action on a single, valid Liquibase instance

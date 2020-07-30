@@ -1,4 +1,4 @@
-package de.adito.liquibase.liquibase;
+package de.adito.liquibase.notification;
 
 import org.jetbrains.annotations.*;
 
