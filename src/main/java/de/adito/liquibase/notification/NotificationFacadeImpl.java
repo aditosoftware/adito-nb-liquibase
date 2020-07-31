@@ -11,7 +11,7 @@ import java.awt.event.ActionListener;
 /**
  * @author w.glanzer, 31.10.2018
  */
-public class NotificationFacadeImpl implements INotificationFacade
+class NotificationFacadeImpl implements INotificationFacade
 {
 
   @Override

@@ -1,14 +1,15 @@
 package de.adito.liquibase.internal.base;
 
-import de.adito.liquibase.internal.Bundle;
 import liquibase.Liquibase;
 import liquibase.database.*;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.*;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.*;
+import org.netbeans.api.progress.*;
 import org.netbeans.api.project.*;
 import org.openide.*;
 import org.openide.filesystems.FileUtil;
+import org.openide.util.NbBundle;
 
 import java.io.File;
 import java.sql.Connection;
@@ -21,32 +22,33 @@ import java.sql.Connection;
 class LiquibaseProviderImpl implements ILiquibaseProvider
 {
   private final IConnectionProvider connectionProvider;
-  private final ProjectResourceAccessor resourceAccessor;
-  private final String relativeChangeLogFile;
 
-  LiquibaseProviderImpl(@NotNull IConnectionProvider pConnectionProvider, @NotNull File pChangeLogFile)
+  LiquibaseProviderImpl(@NotNull IConnectionProvider pConnectionProvider)
   {
-    Project project = FileOwnerQuery.getOwner(FileUtil.toFileObject(pChangeLogFile));
-    if (project == null)
-      throw new RuntimeException("File has to be placed in a valid project (" + pChangeLogFile + ")");
-
     connectionProvider = pConnectionProvider;
-    resourceAccessor = new ProjectResourceAccessor(project);
-    relativeChangeLogFile = resourceAccessor.getRelativePath(pChangeLogFile);
   }
 
+  @NbBundle.Messages("LBL_ActionProgress=Executing Liquibase Action...")
   @Override
-  public <Ex extends Exception> void executeWith(@NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException
+  public <Ex extends Exception> void executeOn(@Nullable File pChangeLogFile, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException
   {
     Connection jdbcCon = connectionProvider.findCurrentConnection();
     if (jdbcCon != null)
     {
       JdbcConnection con = new JdbcConnection(jdbcCon);
+      ProgressHandle handle = ProgressHandleFactory.createSystemHandle(Bundle.LBL_ActionProgress());
 
       try
       {
+        // show progress
+        handle.start();
+        handle.switchToIndeterminate();
+
+        // create
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-        Liquibase base = new Liquibase(relativeChangeLogFile, resourceAccessor, database);
+        ProjectResourceAccessor resourceAccessor = pChangeLogFile != null ? _createResourceAccesor(pChangeLogFile) : null;
+        String changelogFile = pChangeLogFile != null ? resourceAccessor.getRelativePath(pChangeLogFile) : null;
+        Liquibase base = new Liquibase(changelogFile, resourceAccessor, database);
 
         // validate
         _validate(base);
@@ -56,10 +58,26 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       }
       finally
       {
+        handle.finish();
         if (!con.isClosed())
           con.close();
       }
     }
+  }
+
+  /**
+   * Creates the correct resource accessor for the given changelog
+   *
+   * @param pChangeLogFile File
+   * @return the accessor
+   */
+  @NotNull
+  private ProjectResourceAccessor _createResourceAccesor(@NotNull File pChangeLogFile)
+  {
+    Project project = FileOwnerQuery.getOwner(FileUtil.toFileObject(pChangeLogFile));
+    if (project == null)
+      throw new RuntimeException("File has to be placed in a valid project (" + pChangeLogFile + ")");
+    return new ProjectResourceAccessor(project);
   }
 
   /**
@@ -68,6 +86,9 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
    * @param pLiquibase Instance to validate
    * @throws LiquibaseException if failure, or user cancel
    */
+  @NbBundle.Messages({
+      "LBL_ContinueValidation=Clear CheckSums before Validation?"
+  })
   private void _validate(@NotNull Liquibase pLiquibase) throws LiquibaseException
   {
     try
