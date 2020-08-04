@@ -48,7 +48,12 @@
     <dependency>
       <groupId>de.adito.nb-modules</groupId>
       <artifactId>nb-adito-interface</artifactId>
-      <version>1.0.17</version>
+      <version>1.4.0-4</version>
+    </dependency>
+    <dependency>
+      <groupId>de.adito.nb-modules</groupId>
+      <artifactId>de-adito-netbeans-utilities</artifactId>
+      <version>RELEASE111-1.4.0-2</version>
     </dependency>
 
     <!-- RxJava -->
@@ -76,6 +81,11 @@
     </dependency>
     <dependency>
       <groupId>org.netbeans.api</groupId>
+      <artifactId>org-netbeans-api-search</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
       <artifactId>org-openide-util-ui</artifactId>
       <version>${netbeans.version}</version>
     </dependency>
@@ -97,6 +107,11 @@
     <dependency>
       <groupId>org.netbeans.api</groupId>
       <artifactId>org-netbeans-modules-db</artifactId>
+      <version>${netbeans.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.netbeans.api</groupId>
+      <artifactId>org-netbeans-swing-outline</artifactId>
       <version>${netbeans.version}</version>
     </dependency>
     <dependency>
