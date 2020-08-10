@@ -1,13 +1,17 @@
 package de.adito.liquibase.internal.executors;
 
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IAliasDiffService;
 import de.adito.liquibase.internal.base.ILiquibaseProvider;
+import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
+import org.netbeans.api.project.*;
 import org.openide.*;
-import org.openide.util.NbBundle;
+import org.openide.util.*;
 
+import java.io.File;
 import java.util.concurrent.CancellationException;
 
 /**
@@ -42,6 +46,35 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       }
       else
         throw new CancellationException();
+    });
+  }
+
+  @NbBundle.Messages({
+      "LBL_UpdateSuccess=Update Succesfull",
+      "LBL_DiffWithDBTables=Diff with DB tables"
+  })
+  @Override
+  public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException
+  {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+      // Execute Update
+      pLiquibase.update("");
+
+      // Finished
+      INotificationFacade.INSTANCE.notify(Bundle.LBL_UpdateSuccess(), Bundle.LBL_DiffWithDBTables(), false, e -> {
+        // Perform Diff on click
+        File changeLog = pChangeLogProvider.hasChangelogsAvailable() ? pChangeLogProvider.findCurrentChangeLog() : null;
+        String aliasName = pChangeLogProvider.findAliasName();
+        if (changeLog != null && aliasName != null)
+        {
+          Project owner = FileOwnerQuery.getOwner(changeLog.toURI());
+          if (owner != null)
+          {
+            IAliasDiffService aliasDiffService = Lookup.getDefault().lookup(IAliasDiffService.class);
+            aliasDiffService.executeDiffWithDB(owner, aliasName);
+          }
+        }
+      });
     });
   }
 

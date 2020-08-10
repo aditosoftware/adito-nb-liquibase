@@ -1,6 +1,7 @@
 package de.adito.liquibase.internal.executors;
 
-import de.adito.liquibase.internal.base.IConnectionProvider;
+import de.adito.liquibase.internal.changelog.IChangelogProvider;
+import de.adito.liquibase.internal.connection.IConnectionProvider;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,5 +21,13 @@ public interface ILiquibaseExecutorFacade
    * @param pConnectionProvider Provider for the connection
    */
   void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException;
+
+  /**
+   * Executes an UPDATE command, with potential user interaction
+   *
+   * @param pConnectionProvider Provider for the connection
+   * @param pChangeLogProvider  Provider for the changelogs to apply
+   */
+  void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException;
 
 }
