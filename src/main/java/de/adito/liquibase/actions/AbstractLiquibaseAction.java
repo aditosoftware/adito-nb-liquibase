@@ -1,7 +1,6 @@
 package de.adito.liquibase.actions;
 
-import de.adito.liquibase.internal.base.IConnectionProvider;
-import de.adito.liquibase.internal.connection.DialogConnectionProvider;
+import de.adito.liquibase.internal.connection.*;
 import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;

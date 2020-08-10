@@ -1,6 +1,5 @@
 package de.adito.liquibase.internal.connection;
 
-import de.adito.liquibase.internal.base.IConnectionProvider;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.netbeans.api.project.Project;

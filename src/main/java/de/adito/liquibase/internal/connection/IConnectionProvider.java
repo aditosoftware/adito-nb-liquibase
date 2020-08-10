@@ -1,4 +1,4 @@
-package de.adito.liquibase.internal.base;
+package de.adito.liquibase.internal.connection;
 
 import org.jetbrains.annotations.Nullable;
 

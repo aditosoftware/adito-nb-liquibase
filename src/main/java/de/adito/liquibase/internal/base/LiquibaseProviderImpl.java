@@ -1,5 +1,6 @@
 package de.adito.liquibase.internal.base;
 
+import de.adito.liquibase.internal.connection.IConnectionProvider;
 import liquibase.Liquibase;
 import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.*;
