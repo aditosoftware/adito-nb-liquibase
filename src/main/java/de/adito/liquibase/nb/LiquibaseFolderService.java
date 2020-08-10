@@ -70,6 +70,18 @@ public class LiquibaseFolderService implements Disposable
   }
 
   /**
+   * Observes the .liquibase Folder of this project
+   *
+   * @return Observable with the folder as content
+   */
+  @NotNull
+  public Observable<Optional<FileObject>> observeLiquibaseFolder()
+  {
+    return cache.calculate("liquibaseFolder", () -> FileObservable.create(_getLiquibaseFolderFile())
+        .map(pFileOpt -> pFileOpt.map(FileUtil::toFileObject)));
+  }
+
+  /**
    * Observes the subfolder in ".liquibase" Folder for a given alias
    *
    * @param pAliasName Name of the alias to be tracked
@@ -115,7 +127,18 @@ public class LiquibaseFolderService implements Disposable
   @NotNull
   private File _getLiquibaseFolderFileForAlias(@NotNull String pAliasName)
   {
-    File liquibaseFolder = new File(FileUtil.toFile(project.getProjectDirectory()), _LIQUIBASE_FOLDER);
-    return new File(liquibaseFolder, pAliasName);
+    return new File(_getLiquibaseFolderFile(), pAliasName);
   }
+
+  /**
+   * Creates the File-Object that points to the .liquibase-Folder instance
+   *
+   * @return the file, maybe does not exist
+   */
+  @NotNull
+  private File _getLiquibaseFolderFile()
+  {
+    return new File(FileUtil.toFile(project.getProjectDirectory()), _LIQUIBASE_FOLDER);
+  }
+
 }

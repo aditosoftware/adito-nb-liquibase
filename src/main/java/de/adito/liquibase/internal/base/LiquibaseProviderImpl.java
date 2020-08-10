@@ -1,5 +1,6 @@
 package de.adito.liquibase.internal.base;
 
+import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import liquibase.Liquibase;
 import liquibase.changelog.DatabaseChangeLog;
@@ -33,7 +34,8 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
 
   @NbBundle.Messages("LBL_ActionProgress=Executing Liquibase Action...")
   @Override
-  public <Ex extends Exception> void executeOn(@Nullable File pChangeLogFile, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException
+  public <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor)
+      throws Ex, LiquibaseException
   {
     Connection jdbcCon = connectionProvider.findCurrentConnection();
     if (jdbcCon != null)
@@ -49,9 +51,10 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
 
         // create
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-        ResourceAccessor resAcc = _createResourceAccesor(pChangeLogFile);
-        String changelogFile = resAcc instanceof ProjectResourceAccessor && pChangeLogFile != null ?
-            ((ProjectResourceAccessor) resAcc).getRelativePath(pChangeLogFile) : null;
+        File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
+        ResourceAccessor resAcc = _createResourceAccesor(currentChangeLogFile);
+        String changelogFile = resAcc instanceof ProjectResourceAccessor && currentChangeLogFile != null ?
+            ((ProjectResourceAccessor) resAcc).getRelativePath(currentChangeLogFile) : null;
         Liquibase base = new Liquibase(new DatabaseChangeLog(changelogFile), resAcc, database);
 
         // validate

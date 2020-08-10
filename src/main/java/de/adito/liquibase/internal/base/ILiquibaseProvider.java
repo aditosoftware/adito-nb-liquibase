@@ -1,11 +1,10 @@
 package de.adito.liquibase.internal.base;
 
+import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import liquibase.Liquibase;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.*;
-
-import java.io.File;
 
 /**
  * Execute Actions on a single, valid Liquibase instance
@@ -30,10 +29,10 @@ public interface ILiquibaseProvider
   /**
    * Execute an Action on a single, valid Liquibase instance
    *
-   * @param pChangeLogFile ChangeLog, if ressources have to be used
-   * @param pExecutor      Function which provides access to liquibase
+   * @param pChangeLogProvider ChangeLogProvider, if ressources have to be used
+   * @param pExecutor          Function which provides access to liquibase
    */
-  <Ex extends Exception> void executeOn(@Nullable File pChangeLogFile, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException;
+  <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException;
 
   /**
    * Consumer, to get liquibase instance

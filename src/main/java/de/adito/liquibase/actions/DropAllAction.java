@@ -33,4 +33,10 @@ public class DropAllAction extends AbstractLiquibaseAction
     return Bundle.CTL_DropAllAction();
   }
 
+  @Override
+  protected boolean changelogAware()
+  {
+    return false;
+  }
+
 }

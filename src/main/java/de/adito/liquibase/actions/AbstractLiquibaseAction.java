@@ -1,5 +1,6 @@
 package de.adito.liquibase.actions;
 
+import de.adito.liquibase.internal.changelog.*;
 import de.adito.liquibase.internal.connection.*;
 import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.exception.LiquibaseException;
@@ -19,6 +20,7 @@ abstract class AbstractLiquibaseAction extends NodeAction
 {
 
   private final IConnectionProvider connectionProvider = new DialogConnectionProvider();
+  private final IChangelogProvider changelogProvider = new SelectedNodesChangelogProvider();
 
   @Override
   protected final void performAction(Node[] activatedNodes)
@@ -42,7 +44,9 @@ abstract class AbstractLiquibaseAction extends NodeAction
   @Override
   protected boolean enable(Node[] activatedNodes)
   {
-    return connectionProvider.hasConnectionsAvailable();
+    boolean connectionOK = connectionProvider.hasConnectionsAvailable();
+    boolean changelogOK = !changelogAware() || changelogProvider.hasChangelogsAvailable();
+    return connectionOK && changelogOK;
   }
 
   @Override
@@ -55,6 +59,14 @@ abstract class AbstractLiquibaseAction extends NodeAction
   protected boolean asynchronous()
   {
     return false;
+  }
+
+  /**
+   * @return true, if this action is only available, if a changelog is selected
+   */
+  protected boolean changelogAware()
+  {
+    return true;
   }
 
   /**
@@ -73,6 +85,15 @@ abstract class AbstractLiquibaseAction extends NodeAction
   protected IConnectionProvider getConnectionProvider()
   {
     return connectionProvider;
+  }
+
+  /**
+   * @return the changelog provider that provides access to the currently selected changelog
+   */
+  @NotNull
+  protected IChangelogProvider getChangelogProvider()
+  {
+    return changelogProvider;
   }
 
 }
