@@ -1,9 +1,11 @@
 package de.adito.liquibase.internal.base;
 
 import liquibase.Liquibase;
+import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.*;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.*;
+import liquibase.resource.*;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.progress.*;
 import org.netbeans.api.project.*;
@@ -46,9 +48,10 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
 
         // create
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-        ProjectResourceAccessor resourceAccessor = pChangeLogFile != null ? _createResourceAccesor(pChangeLogFile) : null;
-        String changelogFile = pChangeLogFile != null ? resourceAccessor.getRelativePath(pChangeLogFile) : null;
-        Liquibase base = new Liquibase(changelogFile, resourceAccessor, database);
+        ResourceAccessor resAcc = _createResourceAccesor(pChangeLogFile);
+        String changelogFile = resAcc instanceof ProjectResourceAccessor && pChangeLogFile != null ?
+            ((ProjectResourceAccessor) resAcc).getRelativePath(pChangeLogFile) : null;
+        Liquibase base = new Liquibase(new DatabaseChangeLog(changelogFile), resAcc, database);
 
         // validate
         _validate(base);
@@ -72,8 +75,11 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
    * @return the accessor
    */
   @NotNull
-  private ProjectResourceAccessor _createResourceAccesor(@NotNull File pChangeLogFile)
+  private ResourceAccessor _createResourceAccesor(@Nullable File pChangeLogFile)
   {
+    if (pChangeLogFile == null)
+      return new FileSystemResourceAccessor(new File(".")); // what should we do?!
+
     Project project = FileOwnerQuery.getOwner(FileUtil.toFileObject(pChangeLogFile));
     if (project == null)
       throw new RuntimeException("File has to be placed in a valid project (" + pChangeLogFile + ")");

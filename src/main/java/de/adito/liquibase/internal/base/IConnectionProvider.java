@@ -20,4 +20,11 @@ public interface IConnectionProvider
   @Nullable
   Connection findCurrentConnection();
 
+  /**
+   * Returns true, if there are some connections available in general
+   *
+   * @return true, if available
+   */
+  boolean hasConnectionsAvailable();
+
 }
