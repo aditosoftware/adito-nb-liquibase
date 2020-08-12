@@ -10,9 +10,7 @@ import liquibase.exception.*;
 import liquibase.resource.*;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.progress.*;
-import org.netbeans.api.project.*;
 import org.openide.*;
-import org.openide.filesystems.FileUtil;
 import org.openide.util.NbBundle;
 
 import java.io.File;
@@ -49,19 +47,27 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
         handle.start();
         handle.switchToIndeterminate();
 
-        // create
+        // Ressources
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-        File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
-        ResourceAccessor resAcc = _createResourceAccesor(currentChangeLogFile);
-        String changelogFile = resAcc instanceof ProjectResourceAccessor && currentChangeLogFile != null ?
-            ((ProjectResourceAccessor) resAcc).getRelativePath(currentChangeLogFile) : null;
-        Liquibase base = new Liquibase(new DatabaseChangeLog(changelogFile), resAcc, database);
+        Liquibase instance;
+        if (pChangelogProvider == null)
+        {
+          ResourceAccessor resourceAccessor = new FileSystemResourceAccessor(new File(".")); // what should we use here?!
+          instance = new Liquibase(new DatabaseChangeLog(), resourceAccessor, database);
+        }
+        else
+        {
+          File currentChangeLogFile = pChangelogProvider.findCurrentChangeLog();
+          ProjectResourceAccessor resourceAccessor = new ProjectResourceAccessor(pChangelogProvider);
+          String changeLogPath = currentChangeLogFile != null ? resourceAccessor.getRelativePath(currentChangeLogFile) : null;
+          instance = new Liquibase(changeLogPath, resourceAccessor, database);
+        }
 
         // validate
-        _validate(base);
+        _validate(instance);
 
         // execute
-        pExecutor.accept(base);
+        pExecutor.accept(instance);
       }
       finally
       {
@@ -70,24 +76,6 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
           con.close();
       }
     }
-  }
-
-  /**
-   * Creates the correct resource accessor for the given changelog
-   *
-   * @param pChangeLogFile File
-   * @return the accessor
-   */
-  @NotNull
-  private ResourceAccessor _createResourceAccesor(@Nullable File pChangeLogFile)
-  {
-    if (pChangeLogFile == null)
-      return new FileSystemResourceAccessor(new File(".")); // what should we do?!
-
-    Project project = FileOwnerQuery.getOwner(FileUtil.toFileObject(pChangeLogFile));
-    if (project == null)
-      throw new RuntimeException("File has to be placed in a valid project (" + pChangeLogFile + ")");
-    return new ProjectResourceAccessor(project);
   }
 
   /**

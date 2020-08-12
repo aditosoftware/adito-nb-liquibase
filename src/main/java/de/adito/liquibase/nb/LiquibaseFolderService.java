@@ -95,6 +95,18 @@ public class LiquibaseFolderService implements Disposable
   }
 
   /**
+   * Creates the File-Object that points to the .liquibase-Folder instance for a given alias
+   *
+   * @param pAliasName Alias
+   * @return the file, maybe does not exist
+   */
+  @NotNull
+  public File getLiquibaseFolderPathForAlias(@NotNull String pAliasName)
+  {
+    return _getLiquibaseFolderFileForAlias(pAliasName);
+  }
+
+  /**
    * Triggers, that an alias with pOldName should be renamed to pNewName or be deleted
    *
    * @param pOldName Old Name

@@ -1,11 +1,15 @@
 package de.adito.liquibase.internal.base;
 
+import de.adito.liquibase.internal.changelog.IChangelogProvider;
+import de.adito.liquibase.nb.LiquibaseFolderService;
 import liquibase.resource.FileSystemResourceAccessor;
-import org.jetbrains.annotations.NotNull;
-import org.netbeans.api.project.Project;
+import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.*;
+import org.netbeans.api.project.*;
 import org.openide.filesystems.FileUtil;
 
-import java.io.File;
+import java.io.*;
+import java.util.Optional;
 
 /**
  * Provides access to resources inside a project
@@ -15,12 +19,9 @@ import java.io.File;
 class ProjectResourceAccessor extends FileSystemResourceAccessor
 {
 
-  private final Project project;
-
-  public ProjectResourceAccessor(@NotNull Project pProject)
+  public ProjectResourceAccessor(@NotNull IChangelogProvider pChangelogProvider)
   {
-    super(FileUtil.toFile(pProject.getProjectDirectory()));
-    project = pProject;
+    super(_getResourceAccessorRoots(pChangelogProvider));
   }
 
   /**
@@ -32,10 +33,57 @@ class ProjectResourceAccessor extends FileSystemResourceAccessor
   @NotNull
   public String getRelativePath(@NotNull File pFile)
   {
-    return FileUtil.toFile(project.getProjectDirectory()).toPath()
-        .relativize(pFile.toPath())
-        .toFile()
-        .getPath();
+    return getRootPaths().stream()
+        .filter(pRoot -> {
+          try
+          {
+            return FileUtils.directoryContains(pRoot.toFile(), pFile);
+          }
+          catch (IOException e)
+          {
+            return false;
+          }
+        })
+        .map(pRoot -> pRoot.relativize(pFile.toPath()).toFile().getPath())
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("Cannot find " + pFile + " in known root paths " + getRootPaths()));
+  }
+
+  /**
+   * Returns all available roots for this resource accessor
+   *
+   * @param pChangelogProvider Provider for the currently selected changelog
+   * @return the files
+   */
+  @Nullable
+  private static File[] _getResourceAccessorRoots(@NotNull IChangelogProvider pChangelogProvider)
+  {
+    File changeLog = pChangelogProvider.findCurrentChangeLog();
+    if (changeLog == null)
+      return null;
+
+    Project project = FileOwnerQuery.getOwner(changeLog.toURI());
+    String aliasName = pChangelogProvider.findAliasName();
+    if (project == null)
+      return null;
+
+    if (aliasName == null)
+      // If there is no alias available in the current context,
+      // then we should be aware of all aliasses in the project.
+      return LiquibaseFolderService.getInstance(project).observeLiquibaseFolder()
+          .map(pFolderOpt -> pFolderOpt
+              .map(FileUtil::toFile)
+              .map(File::listFiles))
+          .blockingFirst(Optional.empty())
+          .orElse(null);
+
+    // Alias is available
+    return LiquibaseFolderService.getInstance(project).observeLiquibaseFolderForAlias(aliasName)
+        .map(pFolderOpt -> pFolderOpt
+            .map(FileUtil::toFile)
+            .map(pFile -> new File[]{pFile}))
+        .blockingFirst(Optional.empty())
+        .orElse(null);
   }
 
 }
