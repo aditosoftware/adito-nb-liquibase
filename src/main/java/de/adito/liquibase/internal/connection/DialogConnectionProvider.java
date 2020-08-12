@@ -7,6 +7,7 @@ import org.openide.*;
 import org.openide.util.*;
 
 import java.awt.*;
+import java.lang.ref.WeakReference;
 import java.sql.Connection;
 
 /**
@@ -17,23 +18,35 @@ import java.sql.Connection;
 public class DialogConnectionProvider implements IConnectionProvider
 {
 
+  private final Object connectionLock = new Object();
+  private WeakReference<Connection> selectedConnectionRef;
+
   @Nullable
   @Override
   public Connection findCurrentConnection()
   {
-    Project project = _findCurrentProject();
-    if (project != null)
-      return _showSelectionDialog(project);
-    return null;
+    return _findPersistedConnection(true);
   }
 
   @Override
   public boolean hasConnectionsAvailable()
   {
+    if (_findPersistedConnection(false) != null)
+      return true;
+
     Project project = _findCurrentProject();
     if (project != null)
       return new SelectConnectionDialogModel(project).hasConnectionsAvailable();
     return false;
+  }
+
+  @Override
+  public void reset()
+  {
+    synchronized (connectionLock)
+    {
+      selectedConnectionRef = null;
+    }
   }
 
   /**
@@ -78,6 +91,38 @@ public class DialogConnectionProvider implements IConnectionProvider
   private Project _findCurrentProject()
   {
     return Utilities.actionsGlobalContext().lookup(Project.class);
+  }
+
+  @Nullable
+  private Connection _findPersistedConnection(boolean pAskUserToChoose)
+  {
+    try
+    {
+      synchronized (connectionLock)
+      {
+        Connection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();
+        if (con != null && con.isValid(500))
+          return con;
+
+        if (pAskUserToChoose)
+        {
+          // read new connection
+          Project project = _findCurrentProject();
+          if (project != null)
+            con = _showSelectionDialog(project);
+
+          // persist in ref
+          if (con != null)
+            selectedConnectionRef = new WeakReference<>(con);
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      // nothing, just return null
+    }
+
+    return null;
   }
 
 }

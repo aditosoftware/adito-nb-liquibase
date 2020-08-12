@@ -27,4 +27,9 @@ public interface IConnectionProvider
    */
   boolean hasConnectionsAvailable();
 
+  /**
+   * This resets the chosen connection so that, e.g. the user has to choose another one
+   */
+  void reset();
+
 }

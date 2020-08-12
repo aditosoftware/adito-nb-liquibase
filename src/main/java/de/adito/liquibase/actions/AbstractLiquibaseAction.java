@@ -84,6 +84,7 @@ abstract class AbstractLiquibaseAction extends NodeAction
   @NotNull
   protected IConnectionProvider getConnectionProvider()
   {
+    connectionProvider.reset();
     return connectionProvider;
   }
 
