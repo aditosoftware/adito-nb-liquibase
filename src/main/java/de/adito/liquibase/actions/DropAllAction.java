@@ -17,7 +17,7 @@ import java.util.concurrent.CancellationException;
 @NbBundle.Messages("CTL_DropAllAction=Drop All...")
 @ActionID(category = "Liquibase", id = "de.adito.liquibase.actions.DropAllAction")
 @ActionRegistration(displayName = "#CTL_DropAllAction", lazy = false)
-@ActionReference(path = "Plugins/Liquibase/Actions", position = 100, separatorAfter = 110)
+@ActionReference(path = "Plugins/Liquibase/Actions", position = 200)
 public class DropAllAction extends AbstractLiquibaseAction
 {
 
