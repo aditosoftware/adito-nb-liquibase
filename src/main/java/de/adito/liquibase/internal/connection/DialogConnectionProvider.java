@@ -26,7 +26,10 @@ public class DialogConnectionProvider implements IConnectionProvider
   @Override
   public Connection findCurrentConnection()
   {
-    return _findPersistedConnection(true);
+    Connection con = _findPersistedConnection(true);
+    if (con != null)
+      return new UnclosableConnectionWrapper(con);
+    return null;
   }
 
   @Override
