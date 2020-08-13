@@ -50,6 +50,15 @@ abstract class AbstractLiquibaseAction extends NodeAction
   }
 
   @Override
+  public final boolean isEnabled()
+  {
+    // do not cache this value, because connections can be
+    // changed without chaning the relevant nodes
+    putProperty(PROP_ENABLED, null);
+    return super.isEnabled();
+  }
+
+  @Override
   public HelpCtx getHelpCtx()
   {
     return null;

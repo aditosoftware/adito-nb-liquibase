@@ -48,18 +48,18 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
         handle.switchToIndeterminate();
 
         // Ressources
+        File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
         Liquibase instance;
-        if (pChangelogProvider == null)
+        if (pChangelogProvider == null || currentChangeLogFile == null)
         {
           ResourceAccessor resourceAccessor = new FileSystemResourceAccessor(new File(".")); // what should we use here?!
-          instance = new Liquibase(new DatabaseChangeLog(), resourceAccessor, database);
+          instance = new Liquibase(new DatabaseChangeLog(null), resourceAccessor, database);
         }
         else
         {
-          File currentChangeLogFile = pChangelogProvider.findCurrentChangeLog();
           ProjectResourceAccessor resourceAccessor = new ProjectResourceAccessor(pChangelogProvider);
-          String changeLogPath = currentChangeLogFile != null ? resourceAccessor.getRelativePath(currentChangeLogFile) : null;
+          String changeLogPath = resourceAccessor.getRelativePath(currentChangeLogFile);
           instance = new Liquibase(changeLogPath, resourceAccessor, database);
         }
 

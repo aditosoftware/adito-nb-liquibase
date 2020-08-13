@@ -9,6 +9,7 @@ import org.openide.util.*;
 import java.awt.*;
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
+import java.util.concurrent.CancellationException;
 
 /**
  * ConnectionProvider that asks the user to select a connection
@@ -80,6 +81,8 @@ public class DialogConnectionProvider implements IConnectionProvider
       if (con != null)
         return con.getJDBCConnection();
     }
+    else
+      throw new CancellationException();
 
     return null;
   }
@@ -114,6 +117,9 @@ public class DialogConnectionProvider implements IConnectionProvider
           // persist in ref
           if (con != null)
             selectedConnectionRef = new WeakReference<>(con);
+
+          // finished
+          return con;
         }
       }
     }
