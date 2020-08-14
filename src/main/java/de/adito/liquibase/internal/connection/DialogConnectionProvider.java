@@ -66,7 +66,7 @@ public class DialogConnectionProvider implements IConnectionProvider
       "ACSD_SelectConnection=Select the database connection for generating connection code."
   })
   @Nullable
-  private IPossibleConnectionProvider.IPossibleDBConnection _showSelectionDialog(@NotNull Project pProject)
+  private IPossibleConnectionProvider.IPossibleDBConnection _showSelectionDialog(@NotNull Project pProject) throws CancellationException
   {
     SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject);
     SelectConnectionDialogPanel panel = new SelectConnectionDialogPanel(model);
@@ -98,36 +98,26 @@ public class DialogConnectionProvider implements IConnectionProvider
   @Nullable
   private IPossibleConnectionProvider.IPossibleDBConnection _findPersistedConnection(boolean pOpenNewConnection)
   {
-    try
+    synchronized (connectionLock)
     {
-      synchronized (connectionLock)
+      IPossibleConnectionProvider.IPossibleDBConnection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();
+
+      // new connection?
+      if (con == null && pOpenNewConnection)
       {
-        IPossibleConnectionProvider.IPossibleDBConnection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();
+        // read new connection
+        Project project = _findCurrentProject();
+        if (project != null)
+          con = _showSelectionDialog(project);
+
+        // persist in ref
         if (con != null)
-          return con;
-
-        if (pOpenNewConnection)
-        {
-          // read new connection
-          Project project = _findCurrentProject();
-          if (project != null)
-            con = _showSelectionDialog(project);
-
-          // persist in ref
-          if (con != null)
-            selectedConnectionRef = new WeakReference<>(con);
-
-          // finished
-          return con;
-        }
+          selectedConnectionRef = new WeakReference<>(con);
       }
-    }
-    catch (Exception e)
-    {
-      // nothing, just return null
-    }
 
-    return null;
+      // finished
+      return con;
+    }
   }
 
 }
