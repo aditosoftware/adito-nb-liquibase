@@ -1,10 +1,9 @@
 package de.adito.liquibase.internal.connection;
 
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IJDBCURLTester;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.*;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.rxjava3.disposables.*;
 import org.jetbrains.annotations.NotNull;
-import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.openide.util.*;
 
 import javax.swing.*;
@@ -110,11 +109,11 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable
     messageLabel.setText("");
 
     // new message
-    DatabaseConnection connection = model.getSelectedConnection();
+    IPossibleConnectionProvider.IPossibleDBConnection connection = model.getSelectedConnection();
     IJDBCURLTester tester = Lookup.getDefault().lookup(IJDBCURLTester.class);
     if (connection != null && tester != null)
     {
-      IJDBCURLTester.EResult result = tester.test(connection.getDatabaseURL());
+      IJDBCURLTester.EResult result = tester.test(connection.getURL());
       switch (result)
       {
         case POTENTIALLY_REMOTE:

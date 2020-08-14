@@ -1,5 +1,6 @@
 package de.adito.liquibase.internal.connection;
 
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.*;
@@ -8,6 +9,8 @@ import org.netbeans.api.project.Project;
 import org.openide.util.NbBundle;
 
 import javax.swing.*;
+import java.io.IOException;
+import java.sql.Connection;
 import java.util.*;
 
 /**
@@ -18,15 +21,18 @@ import java.util.*;
  */
 class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
 {
-  private final List<_Item> availableData = new ArrayList<>();
+  private final Set<_Item> availableData = new HashSet<>();
   private final List<_Item> shownData = new ArrayList<>();
   private final BehaviorSubject<Boolean> showAllConnections = BehaviorSubject.create();
 
   SelectConnectionDialogModel(@NotNull Project pProject)
   {
-    //todo get connections from project
+    for (IPossibleConnectionProvider.IPossibleDBConnection c : AditoConnectionManager.getPossibleConnections(pProject))
+      availableData.add(new _Item(c));
+
+    // Add all unnamed connections
     for (DatabaseConnection c : ConnectionManager.getDefault().getConnections())
-      availableData.add(new _Item(null, c));
+      availableData.add(new _Item(c));
 
     // init connections
     setShowAllConnections(false);
@@ -94,7 +100,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
    * @return the selected connection or null if no connection was selected
    */
   @Nullable
-  public DatabaseConnection getSelectedConnection()
+  public IPossibleConnectionProvider.IPossibleDBConnection getSelectedConnection()
   {
     _Item item = (_Item) getSelectedItem();
     if (item != null)
@@ -108,26 +114,74 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
    */
   private static class _Item
   {
-    private final String name;
-    private final DatabaseConnection connection;
+    private final IPossibleConnectionProvider.IPossibleDBConnection connection;
 
-    _Item(String pName, DatabaseConnection pConnection)
+    _Item(@NotNull IPossibleConnectionProvider.IPossibleDBConnection pConnection)
     {
-      name = pName;
       connection = pConnection;
+    }
+
+    _Item(@NotNull DatabaseConnection pConnection)
+    {
+      connection = new IPossibleConnectionProvider.IPossibleDBConnection()
+      {
+        @NotNull
+        @Override
+        public String getURL()
+        {
+          return pConnection.getDatabaseURL();
+        }
+
+        @Nullable
+        @Override
+        public String getSourceName()
+        {
+          return null;
+        }
+
+        @Override
+        public <T, Ex extends Throwable> T withJDBCConnection(@NotNull IConnectionFunction<T, Ex> pFunction) throws IOException, Ex
+        {
+          ConnectionManager.getDefault().showConnectionDialog(pConnection);
+          Connection jdbcCon = pConnection.getJDBCConnection();
+          if (jdbcCon == null)
+            // should not happen
+            throw new IOException("Connection could not be read. Maybe it is not connected?");
+          return pFunction.apply(jdbcCon);
+        }
+      };
     }
 
     @Nullable
     public String getOwner()
     {
-      return name;
+      return connection.getSourceName();
     }
 
     @NbBundle.Messages("UnknownOwner=Unknown owner")
     @Override
     public String toString()
     {
-      return "[" + (name != null ? name : Bundle.UnknownOwner()) + "] " + connection.getDisplayName();
+      String name = getOwner();
+      return "[" + (name != null ? name : Bundle.UnknownOwner()) + "] " + connection.getURL();
+    }
+
+    @Override
+    public boolean equals(Object pO)
+    {
+      if (this == pO)
+        return true;
+      if (pO == null || getClass() != pO.getClass())
+        return false;
+      _Item item = (_Item) pO;
+      return Objects.equals(connection.getURL(), item.connection.getURL()) &&
+          Objects.equals(connection.getSourceName(), item.connection.getSourceName());
+    }
+
+    @Override
+    public int hashCode()
+    {
+      return Objects.hash(connection.getURL(), connection.getSourceName());
     }
   }
 }

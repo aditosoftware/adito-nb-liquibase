@@ -15,6 +15,7 @@ import org.openide.util.NbBundle;
 
 import java.io.*;
 import java.sql.Connection;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Provides direct access to Liquibase for a given ChangeLog-File
@@ -35,46 +36,78 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
   public <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor)
       throws Ex, LiquibaseException, IOException
   {
-    Connection jdbcCon = connectionProvider.findCurrentConnection();
-    if (jdbcCon != null)
+    AtomicReference<Ex> exRef = new AtomicReference<>();
+    connectionProvider.executeOnCurrentConnection(pCon -> {
+      _executeOn(pChangelogProvider, pExecutor, pCon, exRef);
+      return null;
+    });
+
+    // Exception thrown?
+    if (exRef.get() != null)
+      throw exRef.get();
+  }
+
+  /**
+   * Executes something with liquibase (LiquibaseConsumer)
+   *
+   * @param pChangelogProvider Provider for the changelogs
+   * @param pExecutor          Contains the algorithm that should be executed
+   * @param pConnection        Execute something on the given connection
+   * @param pConsumerExRef     Contains the exception of the given consumer, if any happened
+   */
+  private <Ex extends Exception> void _executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor,
+                                                 @NotNull Connection pConnection, @NotNull AtomicReference<Ex> pConsumerExRef)
+      throws LiquibaseException
+  {
+    JdbcConnection con = new JdbcConnection(pConnection);
+    ProgressHandle handle = ProgressHandleFactory.createSystemHandle(Bundle.LBL_ActionProgress());
+
+    try
     {
-      JdbcConnection con = new JdbcConnection(jdbcCon);
-      ProgressHandle handle = ProgressHandleFactory.createSystemHandle(Bundle.LBL_ActionProgress());
+      // show progress
+      handle.start();
+      handle.switchToIndeterminate();
+
+      // Ressources
+      File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
+      Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
+      Liquibase instance;
+      if (pChangelogProvider == null || currentChangeLogFile == null)
+      {
+        ResourceAccessor resourceAccessor = new FileSystemResourceAccessor(new File(".")); // what should we use here?!
+        instance = new Liquibase(new DatabaseChangeLog(null), resourceAccessor, database);
+      }
+      else
+      {
+        ProjectResourceAccessor resourceAccessor = new ProjectResourceAccessor(pChangelogProvider);
+        String changeLogPath = resourceAccessor.getRelativePath(currentChangeLogFile);
+        instance = new Liquibase(changeLogPath, resourceAccessor, database);
+      }
+
+      // validate
+      _validate(instance);
 
       try
       {
-        // show progress
-        handle.start();
-        handle.switchToIndeterminate();
-
-        // Ressources
-        File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
-        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-        Liquibase instance;
-        if (pChangelogProvider == null || currentChangeLogFile == null)
-        {
-          ResourceAccessor resourceAccessor = new FileSystemResourceAccessor(new File(".")); // what should we use here?!
-          instance = new Liquibase(new DatabaseChangeLog(null), resourceAccessor, database);
-        }
-        else
-        {
-          ProjectResourceAccessor resourceAccessor = new ProjectResourceAccessor(pChangelogProvider);
-          String changeLogPath = resourceAccessor.getRelativePath(currentChangeLogFile);
-          instance = new Liquibase(changeLogPath, resourceAccessor, database);
-        }
-
-        // validate
-        _validate(instance);
-
         // execute
         pExecutor.accept(instance);
       }
-      finally
+      catch (Exception ex)
       {
-        handle.finish();
-        if (!con.isClosed())
-          con.close();
+        try
+        {
+          //noinspection unchecked
+          pConsumerExRef.set((Ex) ex);
+        }
+        catch (ClassCastException cce)
+        {
+          throw new RuntimeException(cce);
+        }
       }
+    }
+    finally
+    {
+      handle.finish();
     }
   }
 

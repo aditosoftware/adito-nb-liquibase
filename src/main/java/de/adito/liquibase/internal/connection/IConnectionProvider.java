@@ -1,8 +1,9 @@
 package de.adito.liquibase.internal.connection;
 
-import org.jetbrains.annotations.Nullable;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider.IPossibleDBConnection.IConnectionFunction;
+import org.jetbrains.annotations.NotNull;
 
-import java.sql.Connection;
+import java.io.IOException;
 
 /**
  * Provides Database-Connections
@@ -13,12 +14,14 @@ public interface IConnectionProvider
 {
 
   /**
-   * Returns the connection that should be used to execute liquibase actions
+   * Executes something on the current connection.
    *
-   * @return the connection
+   * @param pFunction Function that consumes the connection
+   * @throws IOException if no current connection exists
+   * @throws Ex          if something inside pFunction failed
    */
-  @Nullable
-  Connection findCurrentConnection();
+  @SuppressWarnings("UnusedReturnValue")
+  <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull IConnectionFunction<T, Ex> pFunction) throws IOException, Ex;
 
   /**
    * Returns true, if there are some connections available in general

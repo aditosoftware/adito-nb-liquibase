@@ -1,14 +1,15 @@
 package de.adito.liquibase.internal.connection;
 
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider;
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider.IPossibleDBConnection.IConnectionFunction;
 import org.jetbrains.annotations.*;
-import org.netbeans.api.db.explorer.DatabaseConnection;
 import org.netbeans.api.project.Project;
 import org.openide.*;
 import org.openide.util.*;
 
 import java.awt.*;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.sql.Connection;
 import java.util.concurrent.CancellationException;
 
 /**
@@ -20,16 +21,17 @@ public class DialogConnectionProvider implements IConnectionProvider
 {
 
   private final Object connectionLock = new Object();
-  private WeakReference<Connection> selectedConnectionRef;
+  private WeakReference<IPossibleConnectionProvider.IPossibleDBConnection> selectedConnectionRef;
 
-  @Nullable
   @Override
-  public Connection findCurrentConnection()
+  public <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull IConnectionFunction<T, Ex> pFunction) throws IOException, Ex
   {
-    Connection con = _findPersistedConnection(true);
-    if (con != null)
-      return new UnclosableConnectionWrapper(con);
-    return null;
+    IPossibleConnectionProvider.IPossibleDBConnection con = _findPersistedConnection(true);
+    if (con == null)
+      throw new IOException("Failed to get current connection");
+
+    // Execute something
+    return con.withJDBCConnection(pCon -> pFunction.apply(new UnclosableConnectionWrapper(pCon)));
   }
 
   @Override
@@ -57,14 +59,14 @@ public class DialogConnectionProvider implements IConnectionProvider
    * shows a dialog to ask the user, which connection to use
    *
    * @param pProject Project as environment
-   * @return the connection or null, if the user did not select any
+   * @return the connection or null / error, if the user did not select any
    */
   @NbBundle.Messages({
       "MSG_SelectConnection=Select Database Connection",
       "ACSD_SelectConnection=Select the database connection for generating connection code."
   })
   @Nullable
-  private Connection _showSelectionDialog(@NotNull Project pProject)
+  private IPossibleConnectionProvider.IPossibleDBConnection _showSelectionDialog(@NotNull Project pProject)
   {
     SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject);
     SelectConnectionDialogPanel panel = new SelectConnectionDialogPanel(model);
@@ -79,15 +81,9 @@ public class DialogConnectionProvider implements IConnectionProvider
     panel.dispose();
 
     if (desc.getValue() == DialogDescriptor.OK_OPTION)
-    {
-      DatabaseConnection con = model.getSelectedConnection();
-      if (con != null)
-        return con.getJDBCConnection();
-    }
+      return model.getSelectedConnection();
     else
       throw new CancellationException();
-
-    return null;
   }
 
   /**
@@ -100,17 +96,17 @@ public class DialogConnectionProvider implements IConnectionProvider
   }
 
   @Nullable
-  private Connection _findPersistedConnection(boolean pAskUserToChoose)
+  private IPossibleConnectionProvider.IPossibleDBConnection _findPersistedConnection(boolean pOpenNewConnection)
   {
     try
     {
       synchronized (connectionLock)
       {
-        Connection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();
-        if (con != null && con.isValid(500))
+        IPossibleConnectionProvider.IPossibleDBConnection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();
+        if (con != null)
           return con;
 
-        if (pAskUserToChoose)
+        if (pOpenNewConnection)
         {
           // read new connection
           Project project = _findCurrentProject();
