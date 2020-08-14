@@ -6,6 +6,8 @@ import liquibase.Liquibase;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.*;
 
+import java.io.IOException;
+
 /**
  * Execute Actions on a single, valid Liquibase instance
  *
@@ -32,7 +34,7 @@ public interface ILiquibaseProvider
    * @param pChangeLogProvider ChangeLogProvider, if ressources have to be used
    * @param pExecutor          Function which provides access to liquibase
    */
-  <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException;
+  <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException;
 
   /**
    * Consumer, to get liquibase instance

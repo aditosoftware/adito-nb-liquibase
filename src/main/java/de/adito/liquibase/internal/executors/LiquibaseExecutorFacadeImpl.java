@@ -11,7 +11,7 @@ import org.netbeans.api.project.*;
 import org.openide.*;
 import org.openide.util.*;
 
-import java.io.File;
+import java.io.*;
 import java.util.concurrent.CancellationException;
 
 /**
@@ -28,7 +28,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       "LBL_DropSuccess_Message=Dropped all data from database"
   })
   @Override
-  public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException
+  public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, pLiquibase -> {
       // Then Display Warning
@@ -54,7 +54,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       "LBL_DiffWithDBTables=Diff with DB tables"
   })
   @Override
-  public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException
+  public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
       // Execute Update

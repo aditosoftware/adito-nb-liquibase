@@ -8,6 +8,7 @@ import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
+import java.io.IOException;
 import java.util.concurrent.CancellationException;
 
 /**
@@ -23,7 +24,7 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException
+  protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
   {
     // get connection provider to persist user selection
     // and only show selection dialog once

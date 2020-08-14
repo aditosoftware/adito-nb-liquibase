@@ -13,7 +13,7 @@ import org.netbeans.api.progress.*;
 import org.openide.*;
 import org.openide.util.NbBundle;
 
-import java.io.File;
+import java.io.*;
 import java.sql.Connection;
 
 /**
@@ -33,7 +33,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
   @NbBundle.Messages("LBL_ActionProgress=Executing Liquibase Action...")
   @Override
   public <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor)
-      throws Ex, LiquibaseException
+      throws Ex, LiquibaseException, IOException
   {
     Connection jdbcCon = connectionProvider.findCurrentConnection();
     if (jdbcCon != null)

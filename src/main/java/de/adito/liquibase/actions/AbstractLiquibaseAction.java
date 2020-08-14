@@ -9,6 +9,7 @@ import org.openide.nodes.Node;
 import org.openide.util.*;
 import org.openide.util.actions.NodeAction;
 
+import java.io.IOException;
 import java.util.concurrent.CancellationException;
 
 /**
@@ -34,7 +35,7 @@ abstract class AbstractLiquibaseAction extends NodeAction
       {
         //nothing
       }
-      catch (LiquibaseException e)
+      catch (LiquibaseException | IOException e)
       {
         INotificationFacade.INSTANCE.error(e);
       }
@@ -84,8 +85,9 @@ abstract class AbstractLiquibaseAction extends NodeAction
    * @param pActivatedNodes Currently selected nodes
    * @throws CancellationException Exception, if the user cancels the execution
    * @throws LiquibaseException    Exception that happens, if Liquibase failes somehow
+   * @throws IOException           Exception that happens, if the connection could not be created
    */
-  protected abstract void performAction0(@NotNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException;
+  protected abstract void performAction0(@NotNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException;
 
   /**
    * @return the connection provider for creating liquibase instances
