@@ -1,6 +1,12 @@
+*.ipr
 *.iml
+*.iws
 /.idea/*
+!/.idea/fileTemplates/
+!/.idea/inspectionProfiles/
+!/.idea/runConfigurations/
+!/.idea/codeStyleSettings.xml
+!/.idea/projectCodeStyle.xml
 !/.idea/vcs.xml
-!/.idea/codeStyles
 target/
 keystore

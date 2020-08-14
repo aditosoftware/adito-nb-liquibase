@@ -4,4 +4,3 @@ OpenIDE-Module-Name: Liquibase
 OpenIDE-Module-Display-Category: ADITO / Database
 OpenIDE-Module-Short-Description: Integrates simple tooling for Liquibase systems
 OpenIDE-Module-Long-Description: Integrates simple tooling for Liquibase systems
-OpenIDE-Module-Layer: de/adito/liquibase/layer.xml

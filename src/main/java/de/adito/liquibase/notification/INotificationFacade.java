@@ -1,4 +1,4 @@
-package de.adito.liquibase.liquibase;
+package de.adito.liquibase.notification;
 
 import org.jetbrains.annotations.*;
 
@@ -11,6 +11,8 @@ import java.awt.event.ActionListener;
  */
 public interface INotificationFacade
 {
+
+  INotificationFacade INSTANCE = new NotificationFacadeImpl();
 
   /**
    * Shows a simple balloon to display a pMessage to the user.

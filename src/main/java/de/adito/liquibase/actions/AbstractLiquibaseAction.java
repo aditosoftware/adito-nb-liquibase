@@ -1,79 +1,62 @@
 package de.adito.liquibase.actions;
 
-import de.adito.liquibase.liquibase.*;
-import de.adito.liquibase.liquibase.impl.*;
-import de.adito.liquibase.liquibase.internal.ILiquibaseFactory;
-import de.adito.liquibase.util.Util;
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
+import de.adito.actions.AbstractAsyncNodeAction;
+import de.adito.liquibase.internal.changelog.*;
+import de.adito.liquibase.internal.connection.*;
+import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.exception.LiquibaseException;
-import org.jetbrains.annotations.*;
-import org.netbeans.api.progress.*;
-import org.openide.awt.*;
+import org.jetbrains.annotations.NotNull;
 import org.openide.nodes.Node;
 import org.openide.util.*;
-import org.openide.util.actions.*;
-import org.openide.windows.TopComponent;
 
-import javax.swing.*;
-import java.awt.event.*;
-import java.sql.Connection;
+import java.io.IOException;
 import java.util.concurrent.CancellationException;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
- * Abstract Action for those, which require an Liquibase Instance
+ * Abstract LiquibaseAction in Context Menu
  *
- * @author w.glanzer, 25.10.2018
+ * @author w.glanzer, 10.08.2020
  */
-@NbBundle.Messages("LBL_ActionProgress=Executing Liquibase Action...")
-public abstract class AbstractLiquibaseAction extends NodeAction
+abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
 {
 
+  private final IConnectionProvider connectionProvider = new DialogConnectionProvider();
+  private final IChangelogProvider changelogProvider = new SelectedNodesChangelogProvider();
+
   @Override
-  protected void performAction(Node[] activatedNodes)
+  protected final void performAction(Node[] pNodes)
   {
-    ActivatedNodesProviderImpl impl = new ActivatedNodesProviderImpl();
-    Supplier<Connection> connSup = impl.findConnectionInNodes(getActivatedNodes(activatedNodes));
-    String changeLogFile = impl.findChangeLogFile(getActivatedNodes(activatedNodes));
-
-    ILiquibaseFactory f = new LiquibaseFactoryImpl();
-    ILiquibaseProvider provider = f.create(connSup, changeLogFile);
-
     RequestProcessor.getDefault().post(() -> {
       try
       {
-        ILiquibaseProvider _provider = new _ProgressLiquibaseProvider(() -> provider);
-        execute(_provider);
+        performAction0(pNodes == null ? new Node[0] : pNodes);
       }
       catch (CancellationException cancelled)
       {
         //nothing
       }
-      catch (Exception e)
+      catch (LiquibaseException | IOException e)
       {
-        getNotificationFacade().error(e);
+        INotificationFacade.INSTANCE.error(e);
       }
     });
   }
 
-
-  Node[] getActivatedNodes(@Nullable Node[] pActivatedNodes)
+  @Override
+  protected boolean enable0(@NotNull Node[] pNodes)
   {
-    if ((pActivatedNodes != null) && (pActivatedNodes.length > 0))
-      return pActivatedNodes;
-
-    return TopComponent.getRegistry().getActivatedNodes();
+    boolean connectionOK = connectionProvider.hasConnectionsAvailable();
+    boolean changelogOK = !changelogAware() || changelogProvider.hasChangelogsAvailable();
+    return connectionOK && changelogOK;
   }
 
   @Override
-  protected boolean enable(Node[] activatedNodes)
+  public final boolean isEnabled()
   {
-    Node[] nodes = getActivatedNodes(activatedNodes);//TopComponent.getRegistry().getActivatedNodes();
-    if (nodes.length == 1)
-      return Util.existsChangelogFile(nodes[0]) && Util.containsConnection(nodes[0]);
-
-    return false;
+    // do not cache this value, because connections can be
+    // changed without chaning the relevant nodes
+    putProperty(PROP_ENABLED, null);
+    return super.isEnabled();
   }
 
   @Override
@@ -82,78 +65,47 @@ public abstract class AbstractLiquibaseAction extends NodeAction
     return null;
   }
 
+  @Override
+  protected final boolean asynchronous()
+  {
+    return true;
+  }
+
   /**
-   * @return NotificationFacade to display notifications with a balloon
+   * @return true, if this action is only available, if a changelog is selected
+   */
+  protected boolean changelogAware()
+  {
+    return true;
+  }
+
+  /**
+   * Gets called, if this action should be executed
+   *
+   * @param pActivatedNodes Currently selected nodes
+   * @throws CancellationException Exception, if the user cancels the execution
+   * @throws LiquibaseException    Exception that happens, if Liquibase failes somehow
+   * @throws IOException           Exception that happens, if the connection could not be created
+   */
+  protected abstract void performAction0(@NotNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException;
+
+  /**
+   * @return the connection provider for creating liquibase instances
    */
   @NotNull
-  final INotificationFacade getNotificationFacade()
+  protected IConnectionProvider getConnectionProvider()
   {
-    return new NotificationFacadeImpl();
-  }
-
-  protected abstract void execute(@NotNull ILiquibaseProvider pLiquibase) throws Exception;
-
-  /**
-   * Folder for Liquibase-Actions in Project Menu
-   */
-  @NbBundle.Messages("CTL_LiquibaseAction=Liquibase")
-  @ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.AbstractLiquibaseAction.LiquibaseActionFolder")
-  @ActionRegistration(displayName = "#CTL_LiquibaseAction", lazy = false)
-  @ActionReference(path = LiquiConstants.ACTION_FOLDER, position = 1650)
-  public static final class LiquibaseActionFolder extends AbstractAction implements ILiquibaseActionFolder, ActionListener, Presenter.Popup
-  {
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-      throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public JMenuItem getPopupPresenter()
-    {
-      JMenu main = new JMenu(Bundle.CTL_LiquibaseAction());
-      Stream.of(Utilities.actionsToPopup(Utilities.actionsForPath(LiquiConstants.ACTION_REFERENCE)
-                                             .toArray(new Action[0]), Lookup.EMPTY)
-                    .getComponents())
-          .forEach(main::add);
-      return main;
-    }
-
+    connectionProvider.reset();
+    return connectionProvider;
   }
 
   /**
-   * LiquibaseProvider delegate to show progressbar
+   * @return the changelog provider that provides access to the currently selected changelog
    */
-  public static final class _ProgressLiquibaseProvider implements ILiquibaseProvider
+  @NotNull
+  protected IChangelogProvider getChangelogProvider()
   {
-    private final Supplier<ILiquibaseProvider> delegate;
-
-    _ProgressLiquibaseProvider(Supplier<ILiquibaseProvider> pDelegate)
-    {
-      delegate = pDelegate;
-    }
-
-    @Override
-    public <Ex extends Exception> void executeWith(@NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException
-    {
-      ILiquibaseProvider provider = delegate.get();
-      if (provider == null)
-        return;
-
-      ProgressHandle progressHandle = ProgressHandleFactory.createSystemHandle(Bundle.LBL_ActionProgress());
-      progressHandle.start();
-
-      try
-      {
-        progressHandle.switchToIndeterminate();
-        provider.executeWith(pExecutor);
-      }
-      finally
-      {
-        progressHandle.finish();
-      }
-    }
+    return changelogProvider;
   }
 
 }

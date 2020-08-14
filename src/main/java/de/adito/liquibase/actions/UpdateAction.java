@@ -1,46 +1,31 @@
 package de.adito.liquibase.actions;
 
-import de.adito.liquibase.liquibase.ILiquibaseProvider;
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.*;
+import de.adito.liquibase.internal.executors.ILiquibaseExecutorFacade;
+import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
 import org.openide.awt.*;
-import org.openide.util.*;
+import org.openide.nodes.Node;
+import org.openide.util.NbBundle;
 
-import java.awt.event.*;
+import java.io.IOException;
+import java.util.concurrent.CancellationException;
 
 /**
- * Execute Command: "Update"
+ * Performs the "Update" Action in Liquibase
  *
- * @author w.glanzer, 23.10.2018
+ * @author w.glanzer, 10.08.2020
  */
-@NbBundle.Messages({
-    "CTL_UpdateAction=Update...",
-    "LBL_UpdateAction_Success=Update Successfull"
-})
-@ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.UpdateAction")
+@NbBundle.Messages("CTL_UpdateAction=Update...")
+@ActionID(category = "Liquibase", id = "de.adito.liquibase.actions.UpdateAction")
 @ActionRegistration(displayName = "#CTL_UpdateAction", lazy = false)
-@ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 0)
-public class UpdateAction extends AbstractLiquibaseAction implements ILiquibaseUpdateAction
+@ActionReference(path = "Plugins/Liquibase/Actions", position = 100, separatorAfter = 150)
+public class UpdateAction extends AbstractLiquibaseAction
 {
+
   @Override
-  public void execute(@NotNull ILiquibaseProvider pProvider) throws Exception
+  protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
   {
-    pProvider.executeWith(pLiquibase -> {
-
-      pLiquibase.update("");
-
-      String message = null;
-      ActionListener action = null;
-
-      IDiffService service = Lookup.getDefault().lookup(IDiffService.class);
-      if (service != null)
-      {
-        action = new _DetailsAction(service);
-        message = service.getMessage();
-      }
-
-      getNotificationFacade().notify(Bundle.LBL_UpdateAction_Success(), message, true, action);
-    });
+    ILiquibaseExecutorFacade.INSTANCE.executeUpdate(getConnectionProvider(), getChangelogProvider());
   }
 
   @Override
@@ -49,19 +34,5 @@ public class UpdateAction extends AbstractLiquibaseAction implements ILiquibaseU
     return Bundle.CTL_UpdateAction();
   }
 
-  private class _DetailsAction implements ActionListener
-  {
-    private IDiffService service;
-
-    _DetailsAction(IDiffService pService)
-    {
-      service = pService;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e)
-    {
-      service.perform();
-    }
-  }
 }
+

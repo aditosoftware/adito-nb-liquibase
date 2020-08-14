@@ -1,82 +1,46 @@
 package de.adito.liquibase.actions;
 
-import de.adito.liquibase.liquibase.ILiquibaseProvider;
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.liquibase.LiquiConstants;
+import de.adito.liquibase.internal.connection.IConnectionProvider;
+import de.adito.liquibase.internal.executors.ILiquibaseExecutorFacade;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.concurrent.CancellationException;
 
 /**
- * Execute Command: "Drop All" and "Update"
+ * Performs the "Drop All" and "Update" Action in Liquibase
  *
- * @author w.glanzer, 23.10.2018
+ * @author w.glanzer, 10.08.2020
  */
 @NbBundle.Messages("CTL_DropAllAndUpdateAction=Drop All & Update...")
-@ActionID(category = "Liquibase", id = "com.github.wglanzer.nbm.actions.DropAllAndUpdateAction")
+@ActionID(category = "Liquibase", id = "de.adito.liquibase.actions.DropAllAndUpdateAction")
 @ActionRegistration(displayName = "#CTL_DropAllAndUpdateAction", lazy = false)
-@ActionReference(path = LiquiConstants.ACTION_REFERENCE, position = 1100)
+@ActionReference(path = "Plugins/Liquibase/Actions", position = 300, separatorAfter = 350)
 public class DropAllAndUpdateAction extends AbstractLiquibaseAction
 {
-  @Override
-  public void execute(@NotNull ILiquibaseProvider pProvider) throws Exception
-  {
-    _DelegateProvider provider = new _DelegateProvider(pProvider);
-    get(DropAllAction.class).execute(provider); //Execute DropAll
-    get(UpdateAction.class).execute(provider); //Execute Update
-    provider.execute();
-  }
 
   @Override
-  protected boolean enable(Node[] activatedNodes)
+  protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
   {
-    boolean dropAllenabled = get(DropAllAction.class).enable(activatedNodes);
-    boolean updateEnabled = get(UpdateAction.class).enable(activatedNodes);
-    return dropAllenabled & updateEnabled;
+    // get connection provider to persist user selection
+    // and only show selection dialog once
+    IConnectionProvider connectionProvider = getConnectionProvider();
+
+    // Drop All
+    ILiquibaseExecutorFacade.INSTANCE.executeDropAll(connectionProvider);
+
+    // Update
+    ILiquibaseExecutorFacade.INSTANCE.executeUpdate(connectionProvider, getChangelogProvider());
   }
 
   @Override
   public String getName()
   {
     return Bundle.CTL_DropAllAndUpdateAction();
-  }
-
-  /**
-   * Provider that tracks, if an action was executed
-   */
-  private static class _DelegateProvider implements ILiquibaseProvider
-  {
-    private ILiquibaseProvider delegate;
-    private List<ILiquibaseConsumer<? extends Exception>> consumers = new ArrayList<>();
-
-     _DelegateProvider(ILiquibaseProvider pDelegate)
-    {
-      delegate = pDelegate;
-    }
-
-    @Override
-    public <Ex extends Exception> void executeWith(@NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException
-    {
-      consumers.add(pExecutor);
-    }
-
-     void execute() throws Exception
-    {
-      try
-      {
-        delegate.executeWith(pLiquibase -> {
-          for (ILiquibaseConsumer<? extends Exception> consumer : consumers)
-            consumer.accept(pLiquibase); // throws CancellationException, if cancelled
-        });
-      }
-      finally
-      {
-        consumers.clear();
-      }
-    }
   }
 
 }
