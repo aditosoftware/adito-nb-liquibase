@@ -29,7 +29,7 @@ public class CreateFolderAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected boolean enable(Node[] pActivatedNodes)
+  protected boolean enable0(@NotNull Node[] pActivatedNodes)
   {
     // only active, if one (and only one) project is selected
     return Stream.of(pActivatedNodes)

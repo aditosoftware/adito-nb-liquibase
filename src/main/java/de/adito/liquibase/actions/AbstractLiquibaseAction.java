@@ -1,5 +1,6 @@
 package de.adito.liquibase.actions;
 
+import de.adito.actions.AbstractAsyncNodeAction;
 import de.adito.liquibase.internal.changelog.*;
 import de.adito.liquibase.internal.connection.*;
 import de.adito.liquibase.notification.INotificationFacade;
@@ -7,7 +8,6 @@ import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
 import org.openide.nodes.Node;
 import org.openide.util.*;
-import org.openide.util.actions.NodeAction;
 
 import java.io.IOException;
 import java.util.concurrent.CancellationException;
@@ -17,19 +17,19 @@ import java.util.concurrent.CancellationException;
  *
  * @author w.glanzer, 10.08.2020
  */
-abstract class AbstractLiquibaseAction extends NodeAction
+abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
 {
 
   private final IConnectionProvider connectionProvider = new DialogConnectionProvider();
   private final IChangelogProvider changelogProvider = new SelectedNodesChangelogProvider();
 
   @Override
-  protected final void performAction(Node[] activatedNodes)
+  protected final void performAction(Node[] pNodes)
   {
     RequestProcessor.getDefault().post(() -> {
       try
       {
-        performAction0(activatedNodes == null ? new Node[0] : activatedNodes);
+        performAction0(pNodes == null ? new Node[0] : pNodes);
       }
       catch (CancellationException cancelled)
       {
@@ -43,7 +43,7 @@ abstract class AbstractLiquibaseAction extends NodeAction
   }
 
   @Override
-  protected boolean enable(Node[] activatedNodes)
+  protected boolean enable0(@NotNull Node[] pNodes)
   {
     boolean connectionOK = connectionProvider.hasConnectionsAvailable();
     boolean changelogOK = !changelogAware() || changelogProvider.hasChangelogsAvailable();
@@ -66,9 +66,9 @@ abstract class AbstractLiquibaseAction extends NodeAction
   }
 
   @Override
-  protected boolean asynchronous()
+  protected final boolean asynchronous()
   {
-    return false;
+    return true;
   }
 
   /**
