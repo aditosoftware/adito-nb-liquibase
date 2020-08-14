@@ -1,5 +1,6 @@
 package de.adito.liquibase.internal.connection;
 
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider.IPossibleDBConnection.IConnectionFunction;
 import org.jetbrains.annotations.*;
@@ -92,7 +93,7 @@ public class DialogConnectionProvider implements IConnectionProvider
   @Nullable
   private Project _findCurrentProject()
   {
-    return Utilities.actionsGlobalContext().lookup(Project.class);
+    return IProjectQuery.getInstance().findProject(Utilities.actionsGlobalContext());
   }
 
   @Nullable
