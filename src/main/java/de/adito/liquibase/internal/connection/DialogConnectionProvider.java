@@ -93,7 +93,10 @@ public class DialogConnectionProvider implements IConnectionProvider
   @Nullable
   private Project _findCurrentProject()
   {
-    return IProjectQuery.getInstance().findProject(Utilities.actionsGlobalContext());
+    return IProjectQuery.getInstance().findProjects(Utilities.actionsGlobalContext())
+        .stream()
+        .findFirst()
+        .orElse(null);
   }
 
   @Nullable
