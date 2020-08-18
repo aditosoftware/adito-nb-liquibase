@@ -11,6 +11,7 @@ import org.openide.util.*;
 import java.awt.*;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 
 /**
@@ -93,9 +94,8 @@ public class DialogConnectionProvider implements IConnectionProvider
   @Nullable
   private Project _findCurrentProject()
   {
-    return IProjectQuery.getInstance().findProjects(Utilities.actionsGlobalContext())
-        .stream()
-        .findFirst()
+    return Optional.ofNullable(IProjectQuery.getInstance().findProjects(Utilities.actionsGlobalContext(), IProjectQuery.ReturnType.MULTIPLE_TO_SET))
+        .flatMap(pProjects -> pProjects.stream().findFirst())
         .orElse(null);
   }
 

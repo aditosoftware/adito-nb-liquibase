@@ -11,7 +11,7 @@ import org.openide.util.NbBundle;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.stream.Stream;
 
@@ -33,7 +33,8 @@ public class CreateFolderAction extends AbstractLiquibaseAction
   {
     // only active, if one (and only one) project is selected
     return Stream.of(pActivatedNodes)
-        .map(IProjectQuery.getInstance()::findProjects)
+        .map(pNode -> IProjectQuery.getInstance().findProjects(pNode, IProjectQuery.ReturnType.MULTIPLE_TO_SET))
+        .filter(Objects::nonNull)
         .flatMap(Set::stream)
         .distinct()
         .count() == 1 &&
@@ -54,7 +55,8 @@ public class CreateFolderAction extends AbstractLiquibaseAction
 
     // read current project (it has to be only one, because of enable0)
     Stream.of(pActivatedNodes)
-        .map(IProjectQuery.getInstance()::findProjects)
+        .map(pNode -> IProjectQuery.getInstance().findProjects(pNode, IProjectQuery.ReturnType.MULTIPLE_TO_SET))
+        .filter(Objects::nonNull)
         .flatMap(Set::stream)
 
         // get .liquibase folder
