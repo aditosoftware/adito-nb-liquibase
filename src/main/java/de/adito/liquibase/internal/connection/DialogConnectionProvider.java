@@ -6,9 +6,11 @@ import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnection
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.*;
+import org.openide.nodes.Node;
 import org.openide.util.*;
 
 import java.awt.*;
+import java.beans.FeatureDescriptor;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
@@ -44,7 +46,7 @@ public class DialogConnectionProvider implements IConnectionProvider
 
     Project project = _findCurrentProject();
     if (project != null)
-      return new SelectConnectionDialogModel(project).hasConnectionsAvailable();
+      return new SelectConnectionDialogModel(project, null).hasConnectionsAvailable();
     return false;
   }
 
@@ -70,7 +72,7 @@ public class DialogConnectionProvider implements IConnectionProvider
   @Nullable
   private IPossibleConnectionProvider.IPossibleDBConnection _showSelectionDialog(@NotNull Project pProject) throws CancellationException
   {
-    SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject);
+    SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject, _getSelectedAliasDefinitionName());
     SelectConnectionDialogPanel panel = new SelectConnectionDialogPanel(model);
     DialogDescriptor desc = new DialogDescriptor(panel, Bundle.MSG_SelectConnection());
 
@@ -96,6 +98,19 @@ public class DialogConnectionProvider implements IConnectionProvider
   {
     return Optional.ofNullable(IProjectQuery.getInstance().findProjects(Utilities.actionsGlobalContext(), IProjectQuery.ReturnType.MULTIPLE_TO_SET))
         .flatMap(pProjects -> pProjects.stream().findFirst())
+        .orElse(null);
+  }
+
+  /**
+   * @return the currently selected alias definition name or null, if nothing is selected
+   */
+  @Nullable
+  private String _getSelectedAliasDefinitionName()
+  {
+    return Utilities.actionsGlobalContext().lookupAll(Node.class)
+        .stream()
+        .map(FeatureDescriptor::getDisplayName)
+        .findFirst()
         .orElse(null);
   }
 

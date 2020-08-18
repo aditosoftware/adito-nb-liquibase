@@ -25,7 +25,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   private final List<_Item> shownData = new ArrayList<>();
   private final BehaviorSubject<Boolean> showAllConnections = BehaviorSubject.create();
 
-  SelectConnectionDialogModel(@NotNull Project pProject)
+  SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName)
   {
     for (IPossibleConnectionProvider.IPossibleDBConnection c : AditoConnectionManager.getPossibleConnections(pProject))
       availableData.add(new _Item(c));
@@ -36,6 +36,10 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
 
     // init connections
     setShowAllConnections(false);
+
+    // Preselect
+    if (pPreselectedSourceName != null)
+      _tryPreselect(pPreselectedSourceName);
   }
 
   @Override
@@ -107,6 +111,39 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
       return item.connection;
 
     return null;
+  }
+
+  /**
+   * Tries to preselect the source with the given name
+   *
+   * @param pSourceName Name of the source to preselect
+   */
+  private void _tryPreselect(@NotNull String pSourceName)
+  {
+    // Something 100% equal?
+    for (_Item data : shownData)
+    {
+      if (pSourceName.equals(data.getOwner()))
+      {
+        setSelectedItem(data);
+        return;
+      }
+    }
+
+    // We assume, that the data-owners are in the format "system / owner"
+    for (_Item data : shownData)
+    {
+      String owner = data.getOwner();
+      if (owner != null)
+      {
+        String[] split = owner.split("/");
+        if (split.length >= 2 && pSourceName.equals(split[1].trim()))
+        {
+          setSelectedItem(data);
+          return;
+        }
+      }
+    }
   }
 
   /**
