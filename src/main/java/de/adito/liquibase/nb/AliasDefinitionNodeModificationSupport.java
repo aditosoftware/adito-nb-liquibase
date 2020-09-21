@@ -1,6 +1,7 @@
 package de.adito.liquibase.nb;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.nodes.INodeModificationSupport;
+import de.adito.liquibase.actions.*;
 import de.adito.liquibase.notification.INotificationFacade;
 import de.adito.observables.netbeans.*;
 import io.reactivex.rxjava3.core.Observable;
@@ -8,12 +9,15 @@ import io.reactivex.rxjava3.disposables.*;
 import io.reactivex.rxjava3.functions.Consumer;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.*;
+import org.openide.actions.OpenAction;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.*;
 import org.openide.nodes.*;
+import org.openide.util.actions.SystemAction;
 import org.openide.util.datatransfer.PasteType;
 import org.openide.util.lookup.*;
 
+import javax.swing.*;
 import java.awt.datatransfer.Transferable;
 import java.io.IOException;
 import java.util.*;
@@ -64,7 +68,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
 
       // Original Changing Disposable
       disposable.add(_watchLiquibaseFolderNode(pAliasDefNode).subscribe(pFolderNodeOpt -> FilterNode.Children.MUTEX.postWriteRequest(() -> {
-        changeOriginal(pFolderNodeOpt.orElseGet(() -> new AbstractNode(Children.LEAF)), true);
+        changeOriginal(new _FolderNode(pFolderNodeOpt.orElseGet(() -> new AbstractNode(Children.LEAF))), true);
         changeOriginal(pAliasDefNode, false);
       })));
 
@@ -91,6 +95,12 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
     public boolean isDisposed()
     {
       return disposable != null && disposable.isDisposed();
+    }
+
+    @Override
+    public Action getPreferredAction()
+    {
+      return SystemAction.get(OpenAction.class);
     }
 
     /**
@@ -218,6 +228,60 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
       }
     }
 
+  }
+
+  /**
+   * Represents a single wrapped node in the corresponding .liquibase folder
+   */
+  private static class _FolderNode extends FilterNode
+  {
+    public _FolderNode(@NotNull Node pOriginal)
+    {
+      super(pOriginal, new _Children(pOriginal), new ProxyLookup(Lookups.fixed((AbstractFolderBasedAction.IFolderProvider)
+                                                                                   () -> pOriginal.getLookup().lookup(FileObject.class)),
+                                                                 pOriginal.getLookup()));
+    }
+
+    @Override
+    public Action[] getActions(boolean pContext)
+    {
+      Action[] actionArr = super.getActions(pContext);
+      List<Action> actions = actionArr == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(actionArr));
+
+      // Replace "New"-Action with our own folder, if available
+      boolean wasRemoved = actions.removeIf(pAction -> pAction != null &&
+          pAction.getClass().getName().startsWith("org.netbeans.modules.project.ui.actions.NewFile"));
+      if (wasRemoved)
+        actions.add(0, new NewActionsContainer());
+
+      return actions.toArray(new Action[0]);
+    }
+
+    @Override
+    public Action getPreferredAction()
+    {
+      return null;
+    }
+
+    /**
+     * Children-Impl
+     */
+    private static class _Children extends FilterNode.Children
+    {
+      public _Children(@NotNull Node pOriginal)
+      {
+        super(pOriginal);
+      }
+
+      @Override
+      protected Node copyNode(@NotNull Node pNode)
+      {
+        FileObject fo = pNode.getLookup().lookup(FileObject.class);
+        if (fo != null && fo.isFolder())
+          return new _FolderNode(pNode);
+        return super.copyNode(pNode);
+      }
+    }
   }
 
 }
