@@ -6,6 +6,7 @@ import de.adito.liquibase.internal.connection.*;
 import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
+import org.openide.LifecycleManager;
 import org.openide.nodes.Node;
 import org.openide.util.*;
 
@@ -29,6 +30,10 @@ abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
     RequestProcessor.getDefault().post(() -> {
       try
       {
+        // First save all
+        LifecycleManager.getDefault().saveAll();
+
+        // then execute
         performAction0(pNodes == null ? new Node[0] : pNodes);
       }
       catch (CancellationException cancelled)
