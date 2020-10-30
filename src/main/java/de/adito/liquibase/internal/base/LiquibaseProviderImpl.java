@@ -13,6 +13,7 @@ import org.netbeans.api.progress.*;
 import org.openide.*;
 import org.openide.util.NbBundle;
 
+import java.awt.*;
 import java.io.*;
 import java.sql.Connection;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,6 +25,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 class LiquibaseProviderImpl implements ILiquibaseProvider
 {
+  private static final String CLEAR_CHECKSUMS = "Clear checksums";
+  private static final String CANCEL = "Cancel";
+  private static final String SKIP = "Skip";
   private final IConnectionProvider connectionProvider;
 
   LiquibaseProviderImpl(@NotNull IConnectionProvider pConnectionProvider)
@@ -85,7 +89,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       }
 
       // validate
-      _validate(instance);
+      _validate(instance, false);
 
       try
       {
@@ -118,9 +122,10 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
    * @throws LiquibaseException if failure, or user cancel
    */
   @NbBundle.Messages({
-      "LBL_ContinueValidation=Clear CheckSums before Validation?"
+      "LBL_ContinueValidation=Clear CheckSums before Validation?",
+      "TITLE_VALIDATION_FAIL=Liquibase validation failed"
   })
-  private void _validate(@NotNull Liquibase pLiquibase) throws LiquibaseException
+  private void _validate(@NotNull Liquibase pLiquibase, boolean pSkipable) throws LiquibaseException
   {
     try
     {
@@ -128,19 +133,41 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
     }
     catch (ValidationFailedException vfe)
     {
-      NotifyDescriptor.Confirmation descr = new DialogDescriptor.Confirmation(vfe.getLocalizedMessage() + "\n" +
-                                                                                  Bundle.LBL_ContinueValidation(), NotifyDescriptor.YES_NO_OPTION);
-      Object result = DialogDisplayer.getDefault().notify(descr);
-      if (result == NotifyDescriptor.YES_OPTION)
+      if (pSkipable)
       {
-        // Clear
-        pLiquibase.clearCheckSums();
-
-        // Validate and Continue
-        _validate(pLiquibase);
+        DialogDescriptor dialogDescriptor = new DialogDescriptor("Error " + vfe.getLocalizedMessage() + " could not be cleared, skip?",
+                                                                 Bundle.TITLE_VALIDATION_FAIL(), true, new String[]{SKIP, CANCEL},
+                                                                 SKIP, DialogDescriptor.BOTTOM_ALIGN, null, null);
+        Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
+        dialog.setResizable(true);
+        dialog.setMinimumSize(new Dimension(250, 50));
+        dialog.pack();
+        dialog.setVisible(true);
+        if(!dialogDescriptor.getValue().equals(SKIP))
+          throw vfe; //rethrow
       }
       else
-        throw vfe; //rethrow
+      {
+        DialogDescriptor dialogDescriptor = new DialogDescriptor(vfe.getLocalizedMessage() + "\n" +
+                                                                                Bundle.LBL_ContinueValidation(), Bundle.TITLE_VALIDATION_FAIL(),
+                                                                 true, new String[]{CLEAR_CHECKSUMS, CANCEL},
+                                                                 CLEAR_CHECKSUMS, DialogDescriptor.BOTTOM_ALIGN, null, null);
+        Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);
+        dialog.setResizable(true);
+        dialog.setMinimumSize(new Dimension(250, 50));
+        dialog.pack();
+        dialog.setVisible(true);
+        if (dialogDescriptor.getValue().equals(CLEAR_CHECKSUMS))
+        {
+          // Clear
+          pLiquibase.clearCheckSums();
+
+          // Validate and Continue
+          _validate(pLiquibase, true);
+        }
+        else
+          throw vfe; //rethrow
+      }
     }
   }
 
