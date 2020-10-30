@@ -24,18 +24,18 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   private final Set<_Item> availableData = new HashSet<>();
   private final List<_Item> shownData = new ArrayList<>();
   private final BehaviorSubject<Boolean> showAllConnections = BehaviorSubject.create();
+  private final List<IConnectionLoaderStateListener> connectionStateListeners = new ArrayList<>();
 
   SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName)
   {
-    for (IPossibleConnectionProvider.IPossibleDBConnection c : AditoConnectionManager.getPossibleConnections(pProject))
-      availableData.add(new _Item(c));
+    _loadAsync(pProject, pPreselectedSourceName);
 
     // Add all unnamed connections
     for (DatabaseConnection c : ConnectionManager.getDefault().getConnections())
       availableData.add(new _Item(c));
 
     // init connections
-    setShowAllConnections(false);
+    setShowAllConnections(true);
 
     // Preselect
     if (pPreselectedSourceName != null)
@@ -85,6 +85,49 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   }
 
   /**
+   * Does load all connections whose loading time is potentially long - because of this, the loading is done asynchronously
+   *
+   * @param pProject    Project for which to load connections
+   * @param pSourceName name of the connection to preselect
+   */
+  private void _loadAsync(@NotNull Project pProject, @Nullable String pSourceName)
+  {
+    new Thread(() -> {
+      for (IPossibleConnectionProvider.IPossibleDBConnection c : AditoConnectionManager.getPossibleConnections(pProject))
+        availableData.add(new _Item(c));
+      finishedLoading();
+      IConnectionLoaderStateListener.ELoadingState loadingState = IConnectionLoaderStateListener.ELoadingState.FINISHED;
+      if (pSourceName != null && _findItemToSelect(pSourceName) != null)
+      {
+        // if there is no item selected yet, preselect the suggested item
+        if (getSelectedItem() == null)
+          _tryPreselect(pSourceName);
+          // the user already selected an item, changing the selection is unwise - however, notify the user that a connection matching the
+          // suggested one was found
+        else
+          loadingState = IConnectionLoaderStateListener.ELoadingState.FINISHED_FOUND_SELECTED;
+      }
+      fireConnectionStateChanged(loadingState);
+    }).start();
+  }
+
+  private void finishedLoading()
+  {
+    // remember selected item
+    _Item selectedItem = (_Item) getSelectedItem();
+    // clear and add new connections
+    shownData.clear();
+    availableData.stream()
+        .filter(pItem -> showAllConnections.blockingFirst(true) || pItem.getOwner() != null)
+        .sorted(Comparator.comparing(_Item::toString, String.CASE_INSENSITIVE_ORDER))
+        .forEachOrdered(shownData::add);
+    fireContentsChanged(this, 0, shownData.size());
+    // set the selected item again
+    if (selectedItem != null && shownData.contains(selectedItem))
+      setSelectedItem(selectedItem);
+  }
+
+  /**
    * @return true, if all connections should be shown
    */
   public Observable<Boolean> isShowAllConnections()
@@ -113,6 +156,24 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     return null;
   }
 
+  public void addConnectionStateListener(IConnectionLoaderStateListener pListener)
+  {
+    connectionStateListeners.add(pListener);
+  }
+
+  public void removeConnectionStateListener(IConnectionLoaderStateListener pListener)
+  {
+    connectionStateListeners.remove(pListener);
+  }
+
+  private void fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState pLoadingState)
+  {
+    for (IConnectionLoaderStateListener connectionStateListener : connectionStateListeners)
+    {
+      connectionStateListener.stateChanged(pLoadingState);
+    }
+  }
+
   /**
    * Tries to preselect the source with the given name
    *
@@ -120,13 +181,25 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
    */
   private void _tryPreselect(@NotNull String pSourceName)
   {
+    _Item itemToSelect = _findItemToSelect(pSourceName);
+    setSelectedItem(itemToSelect);
+  }
+
+  /**
+   * Tries to find the source with the given name in the shownData list
+   *
+   * @param pSourceName Name of the source to find
+   * @return the item that matched the sourceName
+   */
+  @Nullable
+  private _Item _findItemToSelect(@NotNull String pSourceName)
+  {
     // Something 100% equal?
     for (_Item data : shownData)
     {
       if (pSourceName.equals(data.getOwner()))
       {
-        setSelectedItem(data);
-        return;
+        return data;
       }
     }
 
@@ -139,11 +212,11 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
         String[] split = owner.split("/");
         if (split.length >= 2 && pSourceName.equals(split[1].trim()))
         {
-          setSelectedItem(data);
-          return;
+          return data;
         }
       }
     }
+    return null;
   }
 
   /**

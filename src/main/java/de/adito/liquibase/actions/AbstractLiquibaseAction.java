@@ -50,9 +50,11 @@ abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
   @Override
   protected boolean enable0(@NotNull Node[] pNodes)
   {
-    boolean connectionOK = connectionProvider.hasConnectionsAvailable();
+    // disabled for now, as this can take a very long time due to sequential processing and a possible timeout of 30s per connection
+    //boolean connectionOK = connectionProvider.hasConnectionsAvailable();
     boolean changelogOK = !changelogAware() || changelogProvider.hasChangelogsAvailable();
-    return connectionOK && changelogOK;
+    //return connectionOK && changelogOK;
+    return changelogOK;
   }
 
   @Override
