@@ -4,3 +4,15 @@ OpenIDE-Module-Name: Liquibase
 OpenIDE-Module-Display-Category: ADITO / Database
 OpenIDE-Module-Short-Description: Integrates simple tooling for Liquibase systems
 OpenIDE-Module-Long-Description: Integrates simple tooling for Liquibase systems
+  <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.3.5</p>
+  <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+  <ul>
+    <li>Upgraded the Liquibase dependency to a version that supports MariaDb 10.3</li>
+    <li>All liquibase actions are always enabled, connections that may take longer to check for validity are loaded asynchronously in the connection selection dialog.<br>
+      This should fix issues with the actions taking a long time until they are enabled while also still providing the connections that caused the delay</li>
+  </ul>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+  <ul>
+    <li>The dialog that appears if validation of a statement fails now has properly named buttons and offers a "Skip" button if the validation of a statement fails for the second time</li>
+  </ul>
