@@ -78,4 +78,40 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
     });
   }
 
+  @Override
+  public void executeUpdateSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+      Writer writer = new StringWriter();
+      pLiquibase.update("", writer);
+
+      // Finished
+      INotificationFacade.INSTANCE.showSql(writer.toString());
+    });
+  }
+
+  @Override
+  public void executeFutureRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+      Writer writer = new StringWriter();
+      pLiquibase.futureRollbackSQL(writer);
+
+      // Finished
+      INotificationFacade.INSTANCE.showSql(writer.toString());
+    });
+  }
+
+  @Override
+  public void executeUpdateAndRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+      Writer writer = new StringWriter();
+      pLiquibase.update("", writer);
+      pLiquibase.futureRollbackSQL(writer);
+
+      // Finished
+      INotificationFacade.INSTANCE.showSql(writer.toString());
+    });
+  }
 }

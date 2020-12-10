@@ -13,6 +13,7 @@ import org.openide.actions.OpenAction;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.*;
 import org.openide.nodes.*;
+import org.openide.util.Utilities;
 import org.openide.util.actions.SystemAction;
 import org.openide.util.datatransfer.PasteType;
 import org.openide.util.lookup.*;
@@ -277,11 +278,43 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
       protected Node copyNode(@NotNull Node pNode)
       {
         FileObject fo = pNode.getLookup().lookup(FileObject.class);
-        if (fo != null && fo.isFolder())
-          return new _FolderNode(pNode);
+        if (fo != null)
+        {
+          if (fo.isFolder())
+            return new _FolderNode(pNode);
+          else
+            return new _XmlNode(pNode);
+        }
         return super.copyNode(pNode);
       }
     }
   }
 
+  /**
+   * Represents a single wrapped node for the corresponding changelog-file
+   */
+  private static class _XmlNode extends FilterNode
+  {
+
+    public _XmlNode(Node original)
+    {
+      super(original);
+    }
+
+    @Override
+    public Action[] getActions(boolean pContext)
+    {
+      Action[] actionArr = super.getActions(pContext);
+      List<Action> actions = actionArr == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(actionArr));
+
+      // load custom actions
+      List<? extends Action> foundActions = Utilities.actionsForPath("Plugins/Liquibase/Changelog/Container");
+      foundActions.forEach(pAction -> {
+        if (pAction != null)
+          actions.add(0, pAction);
+      });
+
+      return actions.toArray(new Action[0]);
+    }
+  }
 }

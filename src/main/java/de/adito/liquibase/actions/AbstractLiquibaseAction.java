@@ -18,7 +18,7 @@ import java.util.concurrent.CancellationException;
  *
  * @author w.glanzer, 10.08.2020
  */
-abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
+public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
 {
 
   private final IConnectionProvider connectionProvider = new DialogConnectionProvider();

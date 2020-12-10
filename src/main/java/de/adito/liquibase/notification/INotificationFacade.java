@@ -30,4 +30,10 @@ public interface INotificationFacade
    */
   void error(@NotNull Throwable pThrowable);
 
+  /**
+   * Shows SQL in a Dialog
+   *
+   * @param pSqlText the SQL-Text, which should be displayed
+   */
+  void showSql(@NotNull String pSqlText);
 }

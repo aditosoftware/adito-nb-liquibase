@@ -32,4 +32,27 @@ public interface ILiquibaseExecutorFacade
    */
   void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException;
 
+  /**
+   * Executes an FUTURE ROLLBACK SQL command, with potential user interaction
+   *
+   * @param pConnectionProvider Provider for the connection
+   * @param pChangeLogProvider  Provider for the changelogs to apply
+   */
+  void executeFutureRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException;
+
+  /**
+   * Executes an UPDATE SQL command, with potential user interaction
+   *
+   * @param pConnectionProvider Provider for the connection
+   * @param pChangeLogProvider  Provider for the changelogs to apply
+   */
+  void executeUpdateSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException;
+
+  /**
+   * Executes an UPDATE SQL and an FUTURE ROLLBACK SQL command, with potential user interaction
+   *
+   * @param pConnectionProvider Provider for the connection
+   * @param pChangeLogProvider  Provider for the changelogs to apply
+   */
+  void executeUpdateAndRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException;
 }
