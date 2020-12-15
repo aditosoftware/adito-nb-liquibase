@@ -3,6 +3,7 @@ package de.adito.liquibase.nb;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.nodes.INodeModificationSupport;
 import de.adito.liquibase.actions.*;
 import de.adito.liquibase.notification.INotificationFacade;
+import de.adito.nbm.blueprints.api.IBlueprintActionsProvider;
 import de.adito.observables.netbeans.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
@@ -253,7 +254,10 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
       boolean wasRemoved = actions.removeIf(pAction -> pAction != null &&
           pAction.getClass().getName().startsWith("org.netbeans.modules.project.ui.actions.NewFile"));
       if (wasRemoved)
+      {
         actions.add(0, new NewActionsContainer());
+        actions.add(1, Lookup.getDefault().lookup(IBlueprintActionsProvider.class).createModelActionGroup("liquibase"));
+      }
 
       return actions.toArray(new Action[0]);
     }
@@ -316,13 +320,10 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
           // load custom actions
           List<? extends Action> foundActions = Utilities.actionsForPath("Plugins/Liquibase/Changelog/Container");
           int finalI = i + 2;
-          foundActions.forEach(pAction -> {
-            actions.add(finalI, pAction);
-          });
+          foundActions.forEach(pAction -> actions.add(finalI, pAction));
           break;
         }
       }
-
 
       return actions.toArray(new Action[0]);
     }

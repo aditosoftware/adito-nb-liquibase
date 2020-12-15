@@ -57,6 +57,13 @@
       <version>RELEASE111-1.4.0-5</version>
     </dependency>
 
+    <!-- Blueprint-API -->
+    <dependency>
+      <groupId>de.adito.nbm</groupId>
+      <artifactId>de-adito-blueprint-api</artifactId>
+      <version>${netbeans.version}-1.5.1</version>
+    </dependency>
+
     <!-- RxJava -->
     <dependency>
       <groupId>io.reactivex.rxjava3</groupId>
