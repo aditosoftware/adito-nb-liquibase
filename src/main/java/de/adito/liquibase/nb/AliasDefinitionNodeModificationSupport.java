@@ -13,7 +13,7 @@ import org.openide.actions.OpenAction;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.*;
 import org.openide.nodes.*;
-import org.openide.util.Utilities;
+import org.openide.util.*;
 import org.openide.util.actions.SystemAction;
 import org.openide.util.datatransfer.PasteType;
 import org.openide.util.lookup.*;
@@ -307,12 +307,22 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
       Action[] actionArr = super.getActions(pContext);
       List<Action> actions = actionArr == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(actionArr));
 
-      // load custom actions
-      List<? extends Action> foundActions = Utilities.actionsForPath("Plugins/Liquibase/Changelog/Container");
-      foundActions.forEach(pAction -> {
-        if (pAction != null)
-          actions.add(0, pAction);
-      });
+      for (int i = 0; i < actions.size(); i++)
+      {
+        Action action = actions.get(i);
+        if (action != null && action.getClass().getName().equals("org.netbeans.modules.xml.actions.CollectXMLAction"))
+        {
+          actions.add(i + 1, null);
+          // load custom actions
+          List<? extends Action> foundActions = Utilities.actionsForPath("Plugins/Liquibase/Changelog/Container");
+          int finalI = i + 2;
+          foundActions.forEach(pAction -> {
+            actions.add(finalI, pAction);
+          });
+          break;
+        }
+      }
+
 
       return actions.toArray(new Action[0]);
     }
