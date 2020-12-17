@@ -94,17 +94,17 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       // Ressources
       File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
       Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-      Liquibase instance;
+      AbstractADITOLiquibase instance;
       if (pChangelogProvider == null || currentChangeLogFile == null)
       {
         ResourceAccessor resourceAccessor = new FileSystemResourceAccessor(new File(".")); // what should we use here?!
-        instance = new Liquibase(new DatabaseChangeLog(null), resourceAccessor, database);
+        instance = new ADITOLiquibaseImpl(new DatabaseChangeLog(null), resourceAccessor, database);
       }
       else
       {
         ProjectResourceAccessor resourceAccessor = new ProjectResourceAccessor(pChangelogProvider);
         String changeLogPath = resourceAccessor.getRelativePath(currentChangeLogFile);
-        instance = new Liquibase(changeLogPath, resourceAccessor, database);
+        instance = new ADITOLiquibaseImpl(changeLogPath, resourceAccessor, database);
       }
 
       // validate
@@ -162,13 +162,13 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
         dialog.setMinimumSize(new Dimension(250, 50));
         dialog.pack();
         dialog.setVisible(true);
-        if(!dialogDescriptor.getValue().equals(SKIP))
+        if (!dialogDescriptor.getValue().equals(SKIP))
           throw vfe; //rethrow
       }
       else
       {
         DialogDescriptor dialogDescriptor = new DialogDescriptor(vfe.getLocalizedMessage() + "\n" +
-                                                                                Bundle.LBL_ContinueValidation(), Bundle.TITLE_VALIDATION_FAIL(),
+                                                                     Bundle.LBL_ContinueValidation(), Bundle.TITLE_VALIDATION_FAIL(),
                                                                  true, new String[]{CLEAR_CHECKSUMS, CANCEL},
                                                                  CLEAR_CHECKSUMS, DialogDescriptor.BOTTOM_ALIGN, null, null);
         Dialog dialog = DialogDisplayer.getDefault().createDialog(dialogDescriptor);

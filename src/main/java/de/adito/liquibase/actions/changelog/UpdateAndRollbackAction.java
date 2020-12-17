@@ -16,7 +16,7 @@ import java.util.concurrent.CancellationException;
  *
  * @author s.seemann, 10.12.2020
  */
-@NbBundle.Messages("CTL_UpdateAndRollbackAction=Generate Update And Rollback SQL ...")
+@NbBundle.Messages("CTL_UpdateAndRollbackAction=Generate Update And Future Rollback SQL ...")
 @ActionID(category = "Liquibase", id = "de.adito.liquibase.actions.changelog.UpdateAndRollbackAction")
 @ActionRegistration(displayName = "#CTL_UpdateAndRollbackAction", lazy = false)
 @ActionReference(path = "Plugins/Liquibase/Changelog/Actions", position = 151)

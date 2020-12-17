@@ -1,11 +1,12 @@
 package de.adito.liquibase.internal.executors;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IAliasDiffService;
-import de.adito.liquibase.internal.base.ILiquibaseProvider;
+import de.adito.liquibase.internal.base.*;
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import de.adito.liquibase.notification.INotificationFacade;
-import liquibase.exception.LiquibaseException;
+import liquibase.*;
+import liquibase.exception.*;
 import org.jetbrains.annotations.NotNull;
 import org.netbeans.api.project.*;
 import org.openide.*;
@@ -56,7 +57,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
       // Execute Update
       pLiquibase.update("");
 
@@ -81,21 +82,26 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeUpdateSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
       Writer writer = new StringWriter();
-      pLiquibase.update("", writer);
+      _getUpdateSql(pLiquibase, "", writer);
 
       // Finished
       INotificationFacade.INSTANCE.showSql(writer.toString());
     });
   }
 
+  @NbBundle.Messages({
+      "LBL_TitleRollbackImpossible=Cannot create future rollback SQL",
+      "LBL_MessageRollbackImpossible=Maybe in the changelog is a insert-tag or sql-tag defined, but no rollback-tag"
+  })
   @Override
   public void executeFutureRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
       Writer writer = new StringWriter();
-      pLiquibase.futureRollbackSQL(writer);
+      if (!_getFutureRollbackSql(pLiquibase, "", writer))
+        return;
 
       // Finished
       INotificationFacade.INSTANCE.showSql(writer.toString());
@@ -105,13 +111,58 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeUpdateAndRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
       Writer writer = new StringWriter();
-      pLiquibase.update("", writer);
-      pLiquibase.futureRollbackSQL(writer);
+      _getUpdateSql(pLiquibase, "", writer);
+      if (!_getFutureRollbackSql(pLiquibase, "", writer))
+        return;
 
       // Finished
       INotificationFacade.INSTANCE.showSql(writer.toString());
     });
+  }
+
+  /**
+   * Executes the UPDATE SQL command. It does not check, if the changelog is already run or not.
+   */
+  private void _getUpdateSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull String pContexts, @NotNull Writer pOutput) throws LiquibaseException
+  {
+    try
+    {
+      pLiquibase.setSkipFilter(true);
+      pLiquibase.update(pContexts, pOutput);
+    }
+    finally
+    {
+      pLiquibase.setSkipFilter(false);
+    }
+  }
+
+  /**
+   * Executes the FUTURE ROLLBACK SQL command. If an {@link RollbackImpossibleException} occures, it isn't shown as error, but as information.
+   */
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+  private boolean _getFutureRollbackSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull String pContexts, @NotNull Writer pOutput) throws LiquibaseException
+  {
+    try
+    {
+      pLiquibase.futureRollbackSQL(new Contexts(pContexts), new LabelExpression(), pOutput);
+    }
+    catch (Throwable pE)
+    {
+      Throwable temp = pE.getCause();
+      if (temp != null)
+        temp = temp.getCause();
+
+      // special handling, because the user receives additional information about the cause
+      if (temp instanceof RollbackImpossibleException)
+      {
+        INotificationFacade.INSTANCE.notify(Bundle.LBL_TitleRollbackImpossible(), Bundle.LBL_MessageRollbackImpossible(), false, null);
+        return false;
+      }
+      throw pE;
+    }
+
+    return true;
   }
 }
