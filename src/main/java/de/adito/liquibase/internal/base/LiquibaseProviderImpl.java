@@ -2,6 +2,7 @@ package de.adito.liquibase.internal.base;
 
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
+import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.Liquibase;
 import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.*;
@@ -40,9 +41,27 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
   public <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor)
       throws Ex, LiquibaseException, IOException
   {
+    executeOn(false, pChangelogProvider, pExecutor);
+  }
+
+  @NbBundle.Messages({
+      "LBL_Title_ChangelogRequired=Cannot find the changelog",
+      "LBL_Message_ChangelogRequired=The changelog must end with '.xml'"
+  })
+  @Override
+  public <Ex extends Exception> void executeOn(boolean pChangelogRequired, @Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException
+  {
+    if (pChangelogRequired)
+    {
+      if (pChangeLogProvider == null || pChangeLogProvider.findCurrentChangeLog() == null)
+      {
+        INotificationFacade.INSTANCE.notify(Bundle.LBL_Title_ChangelogRequired(), Bundle.LBL_Message_ChangelogRequired(), false, null);
+        return;
+      }
+    }
     AtomicReference<Ex> exRef = new AtomicReference<>();
     connectionProvider.executeOnCurrentConnection(pCon -> {
-      _executeOn(pChangelogProvider, pExecutor, pCon, exRef);
+      _executeOn(pChangeLogProvider, pExecutor, pCon, exRef);
       return null;
     });
 
