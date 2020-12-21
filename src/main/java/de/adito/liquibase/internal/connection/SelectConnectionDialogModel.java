@@ -114,7 +114,8 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
         else
           loadingState = IConnectionLoaderStateListener.ELoadingState.FINISHED_FOUND_SELECTED;
       }
-      fireConnectionStateChanged(loadingState);
+      if (contexts.getValue() != null)
+        fireConnectionStateChanged(loadingState);
     }).start();
   }
 
@@ -193,6 +194,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
 
   private void _loadContexts(@NotNull IPossibleConnectionProvider.IPossibleDBConnection pConnection)
   {
+    fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState.LOADING);
     RequestProcessor.getDefault().execute(() -> {
       try
       {
@@ -200,6 +202,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
           Set<String> contextNames = getContexts.apply(new UnclosableConnectionWrapper(pCon));
           if (!contextNames.equals(contexts.getValue()))
             contexts.onNext(contextNames);
+          fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState.FINISHED);
           return null;
         });
       }
