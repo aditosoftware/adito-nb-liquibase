@@ -25,6 +25,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   private final CompositeDisposable disposable = new CompositeDisposable();
   private JPanel contextsPanel;
   private JLabel messageLabel;
+  private JLabel contextsLabel;
   private final JLabel loadingIconLabel = new JLabel();
   private ImageIcon loadingIcon;
   private ImageIcon warningIcon;
@@ -98,7 +99,8 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   @NbBundle.Messages("AvailableContexts=Available Contexts:")
   private JComponent _createContextLabel()
   {
-    return new JLabel(Bundle.AvailableContexts());
+    contextsLabel = new JLabel(Bundle.AvailableContexts());
+    return contextsLabel;
   }
 
   private JComponent _createContextsPanel()
@@ -119,19 +121,25 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
     {
       contextsPanel.removeAll();
 
-      JCheckBox defaultChbx = new JCheckBox(Bundle.DefaultContext());
-      defaultChbx.setEnabled(false);
-      defaultChbx.setSelected(true);
-      defaultChbx.setBorder(new EmptyBorder(0, -3, 0, 0));
-      model.contextSelected("", true);
+      if (pContexts.isEmpty())
+        contextsLabel.setVisible(false);
+      else
+      {
+        contextsLabel.setVisible(true);
+        JCheckBox defaultChbx = new JCheckBox(Bundle.DefaultContext());
+        defaultChbx.setEnabled(false);
+        defaultChbx.setSelected(true);
+        defaultChbx.setBorder(new EmptyBorder(0, -3, 0, 0));
+        model.contextSelected("", true);
 
-      contextsPanel.add(defaultChbx);
+        contextsPanel.add(defaultChbx);
 
-      pContexts.forEach(pContextName -> {
-        JCheckBox chbx = new JCheckBox(pContextName);
-        chbx.addActionListener(al -> model.contextSelected(pContextName, chbx.isSelected()));
-        contextsPanel.add(chbx);
-      });
+        pContexts.forEach(pContextName -> {
+          JCheckBox chbx = new JCheckBox(pContextName);
+          chbx.addActionListener(al -> model.contextSelected(pContextName, chbx.isSelected()));
+          contextsPanel.add(chbx);
+        });
+      }
 
       WindowManager.getDefault().invokeWhenUIReady(() -> {
         revalidate();

@@ -33,6 +33,14 @@ public interface ILiquibaseExecutorFacade
   void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException;
 
   /**
+   * Executes an DROP ALL and UPDATE command, with potential user interaction
+   *
+   * @param pConnectionProvider Provider for the connection
+   * @param pChangeLogProvider  Provider for the changelogs to apply
+   */
+  void executeDropAllAndUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException;
+
+  /**
    * Executes an FUTURE ROLLBACK SQL command, with potential user interaction
    *
    * @param pConnectionProvider Provider for the connection

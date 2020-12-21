@@ -21,6 +21,55 @@ import java.util.concurrent.CancellationException;
 class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
 {
 
+  @Override
+  public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
+  {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, (pLiquibase, pContexts) -> _dropAll(pLiquibase));
+  }
+
+  @Override
+  public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider,
+                                                                  (liquibase, contexts) -> _update(liquibase, contexts, pChangeLogProvider));
+  }
+
+  @Override
+  public void executeDropAllAndUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (liquibase, contexts) -> {
+      _dropAll(liquibase);
+      _update(liquibase, contexts, pChangeLogProvider);
+    });
+
+  }
+
+  @NbBundle.Messages({
+      "LBL_UpdateSuccess=Update Succesfull",
+      "LBL_DiffWithDBTables=Diff with DB tables"
+  })
+  private void _update(@NotNull Liquibase pLiquibase, @NotNull Contexts pContexts, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException
+  {
+    // Execute Update
+    pLiquibase.update(pContexts);
+
+    // Finished
+    INotificationFacade.INSTANCE.notify(Bundle.LBL_UpdateSuccess(), Bundle.LBL_DiffWithDBTables(), false, e -> {
+      // Perform Diff on click
+      File changeLog = pChangeLogProvider.hasChangelogsAvailable() ? pChangeLogProvider.findCurrentChangeLog() : null;
+      String aliasName = pChangeLogProvider.findAliasName();
+      if (changeLog != null && aliasName != null)
+      {
+        Project owner = FileOwnerQuery.getOwner(changeLog.toURI());
+        if (owner != null)
+        {
+          IAliasDiffService aliasDiffService = Lookup.getDefault().lookup(IAliasDiffService.class);
+          aliasDiffService.executeDiffWithDB(owner, aliasName);
+        }
+      }
+    });
+  }
+
   @NbBundle.Messages({
       "LBL_DropAllConfirmation=Do you really want to drop all tables from the selected database?",
       "LBL_DropAllConfirmation_Title=Drop All Confirmation",
@@ -28,55 +77,23 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       "LBL_DropSuccess_Title=Drop Success",
       "LBL_DropSuccess_Message=Dropped all data from database"
   })
-  @Override
-  public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
+  private void _dropAll(@NotNull Liquibase pLiquibase) throws DatabaseException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, (pLiquibase, pContexts) -> {
-      // Then Display Warning
-      NotifyDescriptor descr = new NotifyDescriptor(Bundle.LBL_DropAllConfirmation(), Bundle.LBL_DropAllConfirmation_Title(),
-                                                    NotifyDescriptor.OK_CANCEL_OPTION, NotifyDescriptor.QUESTION_MESSAGE,
-                                                    new Object[]{Bundle.BTN_DropAllConfirmation(), NotifyDescriptor.CANCEL_OPTION},
-                                                    NotifyDescriptor.CANCEL_OPTION);
-      if (DialogDisplayer.getDefault().notify(descr) == Bundle.BTN_DropAllConfirmation())
-      {
-        // Execute Action
-        pLiquibase.dropAll();
-
-        // Finished
-        INotificationFacade.INSTANCE.notify(Bundle.LBL_DropSuccess_Title(), Bundle.LBL_DropSuccess_Message(), true, null);
-      }
-      else
-        throw new CancellationException();
-    });
-  }
-
-  @NbBundle.Messages({
-      "LBL_UpdateSuccess=Update Succesfull",
-      "LBL_DiffWithDBTables=Diff with DB tables"
-  })
-  @Override
-  public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
-  {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
-      // Execute Update
-      pLiquibase.update(pContexts);
+    // Then Display Warning
+    NotifyDescriptor descr = new NotifyDescriptor(Bundle.LBL_DropAllConfirmation(), Bundle.LBL_DropAllConfirmation_Title(),
+                                                  NotifyDescriptor.OK_CANCEL_OPTION, NotifyDescriptor.QUESTION_MESSAGE,
+                                                  new Object[]{Bundle.BTN_DropAllConfirmation(), NotifyDescriptor.CANCEL_OPTION},
+                                                  NotifyDescriptor.CANCEL_OPTION);
+    if (DialogDisplayer.getDefault().notify(descr) == Bundle.BTN_DropAllConfirmation())
+    {
+      // Execute Action
+      pLiquibase.dropAll();
 
       // Finished
-      INotificationFacade.INSTANCE.notify(Bundle.LBL_UpdateSuccess(), Bundle.LBL_DiffWithDBTables(), false, e -> {
-        // Perform Diff on click
-        File changeLog = pChangeLogProvider.hasChangelogsAvailable() ? pChangeLogProvider.findCurrentChangeLog() : null;
-        String aliasName = pChangeLogProvider.findAliasName();
-        if (changeLog != null && aliasName != null)
-        {
-          Project owner = FileOwnerQuery.getOwner(changeLog.toURI());
-          if (owner != null)
-          {
-            IAliasDiffService aliasDiffService = Lookup.getDefault().lookup(IAliasDiffService.class);
-            aliasDiffService.executeDiffWithDB(owner, aliasName);
-          }
-        }
-      });
-    });
+      INotificationFacade.INSTANCE.notify(Bundle.LBL_DropSuccess_Title(), Bundle.LBL_DropSuccess_Message(), true, null);
+    }
+    else
+      throw new CancellationException();
   }
 
   @Override

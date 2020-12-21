@@ -17,8 +17,8 @@ import org.openide.util.NbBundle;
 import java.awt.*;
 import java.io.*;
 import java.sql.Connection;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.*;
 
@@ -63,7 +63,11 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       }
     }
     AtomicReference<Ex> exRef = new AtomicReference<>();
-    connectionProvider.executeOnCurrentConnection(pCon -> _getContexts(pChangeLogProvider, pCon),
+    connectionProvider.executeOnCurrentConnection(pCon -> {
+                                                    if (pChangelogRequired)
+                                                      return _getContexts(pChangeLogProvider, pCon);
+                                                    return Set.of();
+                                                  },
                                                   (pCon, pStrings) -> {
                                                     _executeOn(pChangeLogProvider, pExecutor, pCon, pStrings, exRef);
                                                     return null;
