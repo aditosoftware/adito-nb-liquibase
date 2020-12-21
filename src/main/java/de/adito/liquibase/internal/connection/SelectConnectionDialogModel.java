@@ -6,12 +6,13 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.db.explorer.*;
 import org.netbeans.api.project.Project;
-import org.openide.util.NbBundle;
+import org.openide.util.*;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Model for the "SelectConnection" Dialog
@@ -24,22 +25,28 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   private final Set<_Item> availableData = new HashSet<>();
   private final List<_Item> shownData = new ArrayList<>();
   private final BehaviorSubject<Boolean> showAllConnections = BehaviorSubject.create();
+  private final BehaviorSubject<Set<String>> contexts = BehaviorSubject.create();
+  private final Set<String> selectedContexts = new HashSet<>();
   private final List<IConnectionLoaderStateListener> connectionStateListeners = new ArrayList<>();
+  private final Function<Connection, Set<String>> getContexts;
 
-  SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName)
+  SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName, @NotNull Function<Connection, Set<String>> pGetContexts)
   {
-    _loadAsync(pProject, pPreselectedSourceName);
+    getContexts = pGetContexts;
+    SwingUtilities.invokeLater(() -> {
+      _loadAsync(pProject, pPreselectedSourceName);
 
-    // Add all unnamed connections
-    for (DatabaseConnection c : ConnectionManager.getDefault().getConnections())
-      availableData.add(new _Item(c));
+      // Add all unnamed connections
+      for (DatabaseConnection c : ConnectionManager.getDefault().getConnections())
+        availableData.add(new _Item(c));
 
-    // init connections
-    setShowAllConnections(true);
+      // init connections
+      setShowAllConnections(true);
 
-    // Preselect
-    if (pPreselectedSourceName != null)
-      _tryPreselect(pPreselectedSourceName);
+      // Preselect
+      if (pPreselectedSourceName != null)
+        _tryPreselect(pPreselectedSourceName);
+    });
   }
 
   @Override
@@ -143,17 +150,69 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     return !availableData.isEmpty();
   }
 
+  public void contextSelected(@NotNull String pContextName, boolean pEnabled)
+  {
+    if (pEnabled)
+      selectedContexts.add(pContextName);
+    else
+      selectedContexts.remove(pContextName);
+  }
+
   /**
    * @return the selected connection or null if no connection was selected
    */
-  @Nullable
-  public IPossibleConnectionProvider.IPossibleDBConnection getSelectedConnection()
+  @NotNull
+  public Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> getSelectedConnectionAndContexts()
   {
+    List<String> selected;
+    if (contexts.getValue() == null)
+      selected = new ArrayList<>();
+    else
+      selected = new ArrayList<>(selectedContexts);
+
     _Item item = (_Item) getSelectedItem();
     if (item != null)
-      return item.connection;
+      return Pair.of(item.connection, selected);
 
-    return null;
+    return Pair.of(null, selected);
+  }
+
+  @Override
+  public void setSelectedItem(Object anObject)
+  {
+    if (Objects.equals(anObject, getSelectedItem()))
+      return;
+
+    super.setSelectedItem(anObject);
+    if (anObject != null)
+    {
+      _Item item = (_Item) anObject;
+      _loadContexts(item.connection);
+    }
+  }
+
+  private void _loadContexts(@NotNull IPossibleConnectionProvider.IPossibleDBConnection pConnection)
+  {
+    RequestProcessor.getDefault().execute(() -> {
+      try
+      {
+        pConnection.withJDBCConnection(pCon -> {
+          Set<String> contextNames = getContexts.apply(new UnclosableConnectionWrapper(pCon));
+          if (!contextNames.equals(contexts.getValue()))
+            contexts.onNext(contextNames);
+          return null;
+        });
+      }
+      catch (IOException pE)
+      {
+        throw new RuntimeException(pE);
+      }
+    });
+  }
+
+  public BehaviorSubject<Set<String>> observeContexts()
+  {
+    return contexts;
   }
 
   public void addConnectionStateListener(IConnectionLoaderStateListener pListener)

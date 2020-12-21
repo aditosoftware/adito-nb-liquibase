@@ -3,7 +3,7 @@ package de.adito.liquibase.internal.base;
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import de.adito.liquibase.notification.INotificationFacade;
-import liquibase.Liquibase;
+import liquibase.*;
 import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.*;
 import liquibase.database.jvm.JdbcConnection;
@@ -17,7 +17,10 @@ import org.openide.util.NbBundle;
 import java.awt.*;
 import java.io.*;
 import java.sql.Connection;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.*;
 
 /**
  * Provides direct access to Liquibase for a given ChangeLog-File
@@ -60,14 +63,47 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       }
     }
     AtomicReference<Ex> exRef = new AtomicReference<>();
-    connectionProvider.executeOnCurrentConnection(pCon -> {
-      _executeOn(pChangeLogProvider, pExecutor, pCon, exRef);
-      return null;
-    });
+    connectionProvider.executeOnCurrentConnection(pCon -> _getContexts(pChangeLogProvider, pCon),
+                                                  (pCon, pStrings) -> {
+                                                    _executeOn(pChangeLogProvider, pExecutor, pCon, pStrings, exRef);
+                                                    return null;
+                                                  });
 
     // Exception thrown?
     if (exRef.get() != null)
       throw exRef.get();
+  }
+
+  /**
+   * Extracts all Contexts from the Changesets.
+   */
+  private Set<String> _getContexts(@Nullable IChangelogProvider pChangelogProvider, @NotNull Connection pConnection)
+  {
+    try
+    {
+      JdbcConnection con = new JdbcConnection(pConnection);
+      File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
+      Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
+
+      if (currentChangeLogFile != null)
+      {
+        ProjectResourceAccessor resourceAccessor = new ProjectResourceAccessor(pChangelogProvider);
+        String changeLogPath = resourceAccessor.getRelativePath(currentChangeLogFile);
+        ADITOLiquibaseImpl instance = new ADITOLiquibaseImpl(changeLogPath, resourceAccessor, database);
+        return instance.getDatabaseChangeLog().getChangeSets().stream()
+            .flatMap(pChangeSet -> Stream.concat(pChangeSet.getContexts().getContexts().stream(),
+                                                 pChangeSet.getInheritableContexts().stream()
+                                                     .flatMap(pContextExpr -> pContextExpr.getContexts().stream()))
+            )
+            .collect(Collectors.toSet());
+      }
+    }
+    catch (LiquibaseException pE)
+    {
+      INotificationFacade.INSTANCE.error(pE);
+    }
+
+    return Set.of();
   }
 
   /**
@@ -79,7 +115,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
    * @param pConsumerExRef     Contains the exception of the given consumer, if any happened
    */
   private <Ex extends Exception> void _executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor,
-                                                 @NotNull Connection pConnection, @NotNull AtomicReference<Ex> pConsumerExRef)
+                                                 @NotNull Connection pConnection, List<String> pContexts, @NotNull AtomicReference<Ex> pConsumerExRef)
       throws LiquibaseException
   {
     JdbcConnection con = new JdbcConnection(pConnection);
@@ -113,7 +149,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       try
       {
         // execute
-        pExecutor.accept(instance);
+        pExecutor.accept(instance, new Contexts(pContexts));
       }
       catch (Exception ex)
       {

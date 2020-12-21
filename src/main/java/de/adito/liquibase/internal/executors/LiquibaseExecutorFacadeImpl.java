@@ -31,7 +31,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, (pLiquibase, pContexts) -> {
       // Then Display Warning
       NotifyDescriptor descr = new NotifyDescriptor(Bundle.LBL_DropAllConfirmation(), Bundle.LBL_DropAllConfirmation_Title(),
                                                     NotifyDescriptor.OK_CANCEL_OPTION, NotifyDescriptor.QUESTION_MESSAGE,
@@ -57,9 +57,9 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
       // Execute Update
-      pLiquibase.update("");
+      pLiquibase.update(pContexts);
 
       // Finished
       INotificationFacade.INSTANCE.notify(Bundle.LBL_UpdateSuccess(), Bundle.LBL_DiffWithDBTables(), false, e -> {
@@ -82,9 +82,9 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeUpdateSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
       Writer writer = new StringWriter();
-      _getUpdateSql(pLiquibase, "", writer);
+      _getUpdateSql(pLiquibase, pContexts, writer);
 
       // Finished
       INotificationFacade.INSTANCE.showSql(writer.toString());
@@ -98,9 +98,9 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeFutureRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
       Writer writer = new StringWriter();
-      if (!_getFutureRollbackSql(pLiquibase, "", writer))
+      if (!_getFutureRollbackSql(pLiquibase, pContexts, writer))
         return;
 
       // Finished
@@ -111,10 +111,10 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeUpdateAndRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, pLiquibase -> {
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
       Writer writer = new StringWriter();
-      _getUpdateSql(pLiquibase, "", writer);
-      if (!_getFutureRollbackSql(pLiquibase, "", writer))
+      _getUpdateSql(pLiquibase, pContexts, writer);
+      if (!_getFutureRollbackSql(pLiquibase, pContexts, writer))
         return;
 
       // Finished
@@ -125,7 +125,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   /**
    * Executes the UPDATE SQL command. It does not check, if the changelog is already run or not.
    */
-  private void _getUpdateSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull String pContexts, @NotNull Writer pOutput) throws LiquibaseException
+  private void _getUpdateSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts, @NotNull Writer pOutput) throws LiquibaseException
   {
     try
     {
@@ -142,11 +142,11 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
    * Executes the FUTURE ROLLBACK SQL command. If an {@link RollbackImpossibleException} occures, it isn't shown as error, but as information.
    */
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  private boolean _getFutureRollbackSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull String pContexts, @NotNull Writer pOutput) throws LiquibaseException
+  private boolean _getFutureRollbackSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts, @NotNull Writer pOutput) throws LiquibaseException
   {
     try
     {
-      pLiquibase.futureRollbackSQL(new Contexts(pContexts), new LabelExpression(), pOutput);
+      pLiquibase.futureRollbackSQL(pContexts, new LabelExpression(), pOutput);
     }
     catch (Throwable pE)
     {

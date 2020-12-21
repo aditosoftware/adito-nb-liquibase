@@ -7,10 +7,12 @@ import info.clearthought.layout.TableLayout;
 import io.reactivex.rxjava3.disposables.*;
 import org.jetbrains.annotations.NotNull;
 import org.openide.util.*;
+import org.openide.windows.WindowManager;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.Set;
 
 /**
  * Panel for a dialog to select a database connection
@@ -21,6 +23,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
 {
   private final SelectConnectionDialogModel model;
   private final CompositeDisposable disposable = new CompositeDisposable();
+  private JPanel contextsPanel;
   private JLabel messageLabel;
   private final JLabel loadingIconLabel = new JLabel();
   private ImageIcon loadingIcon;
@@ -50,6 +53,10 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
                      pref,
                      gap,
                      pref,
+                     4,
+                     pref,
+                     4,
+                     pref,
                      gap
     };
 
@@ -58,8 +65,10 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
     add(_initLoadingIconLabel(), "3,1");
     add(_createMessageLabel(), "1,5");
     add(_createCheckBox(), "1,3");
+    add(_createContextLabel(), "1,7");
+    add(_createContextsPanel(), "1,9");
 
-    setPreferredSize(new Dimension(650, 96));
+    setPreferredSize(new Dimension(650, 130));
     setMinimumSize(getPreferredSize());
   }
 
@@ -86,6 +95,52 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
     return combo;
   }
 
+  @NbBundle.Messages("AvailableContexts=Available Contexts:")
+  private JComponent _createContextLabel()
+  {
+    return new JLabel(Bundle.AvailableContexts());
+  }
+
+  private JComponent _createContextsPanel()
+  {
+    disposable.add(model.observeContexts().subscribe(this::_showContexts));
+    contextsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    contextsPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
+    return contextsPanel;
+  }
+
+  /**
+   * Shows the contexts as Checkboxes. Also adds an default-Checkbox
+   */
+  @NbBundle.Messages("DefaultContext=default Context")
+  private void _showContexts(Set<String> pContexts)
+  {
+    if (contextsPanel != null)
+    {
+      contextsPanel.removeAll();
+
+      JCheckBox defaultChbx = new JCheckBox(Bundle.DefaultContext());
+      defaultChbx.setEnabled(false);
+      defaultChbx.setSelected(true);
+      defaultChbx.setBorder(new EmptyBorder(0, -3, 0, 0));
+      model.contextSelected("", true);
+
+      contextsPanel.add(defaultChbx);
+
+      pContexts.forEach(pContextName -> {
+        JCheckBox chbx = new JCheckBox(pContextName);
+        chbx.addActionListener(al -> model.contextSelected(pContextName, chbx.isSelected()));
+        contextsPanel.add(chbx);
+      });
+
+      WindowManager.getDefault().invokeWhenUIReady(() -> {
+        revalidate();
+        contextsPanel.repaint();
+        repaint();
+      });
+    }
+  }
+
   /**
    * @return the checkbox to determine, if the user wants to show all connections
    */
@@ -95,7 +150,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   {
     JCheckBox cb = new JCheckBox(Bundle.ShowAllConnections());
     // align checkbox with the combobox and the messageLabel
-    cb.setBorder(new EmptyBorder(0, -2, 0, 0));
+    cb.setBorder(new EmptyBorder(0, -3, 0, 0));
     disposable.add(model.isShowAllConnections().subscribe(cb::setSelected));
     cb.addActionListener(e -> model.setShowAllConnections(cb.isSelected()));
     return cb;
@@ -150,7 +205,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
     messageLabel.setIcon(null);
 
     // new message
-    IPossibleConnectionProvider.IPossibleDBConnection connection = model.getSelectedConnection();
+    IPossibleConnectionProvider.IPossibleDBConnection connection = model.getSelectedConnectionAndContexts().first();
     IJDBCURLTester tester = Lookup.getDefault().lookup(IJDBCURLTester.class);
     if (connection != null && tester != null)
     {

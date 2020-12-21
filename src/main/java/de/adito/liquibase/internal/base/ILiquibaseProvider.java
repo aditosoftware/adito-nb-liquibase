@@ -2,6 +2,7 @@ package de.adito.liquibase.internal.base;
 
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
+import liquibase.Contexts;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.*;
 
@@ -42,7 +43,7 @@ public interface ILiquibaseProvider
    */
   interface ILiquibaseConsumer<Ex extends Throwable>
   {
-    void accept(@NotNull AbstractADITOLiquibase pLiquibase) throws Ex;
+    void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws Ex;
   }
 
 }

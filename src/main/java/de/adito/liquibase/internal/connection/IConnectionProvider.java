@@ -1,9 +1,13 @@
 package de.adito.liquibase.internal.connection;
 
+import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider.IPossibleDBConnection.IConnectionFunction;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.util.*;
+import java.util.function.*;
 
 /**
  * Provides Database-Connections
@@ -21,18 +25,17 @@ public interface IConnectionProvider
    * @throws Ex          if something inside pFunction failed
    */
   @SuppressWarnings("UnusedReturnValue")
-  <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull IConnectionFunction<T, Ex> pFunction) throws IOException, Ex;
-
-  /**
-   * Returns true, if there are some connections available in general
-   *
-   * @return true, if available
-   */
-  boolean hasConnectionsAvailable();
+  <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Function<Connection, Set<String>> pGetContexts,
+                                                         @NotNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex;
 
   /**
    * This resets the chosen connection so that, e.g. the user has to choose another one
    */
   void reset();
+
+  interface IConnectionContextFunction<T, Ex extends Throwable>
+  {
+    T apply(@NotNull Connection pConnection, @NotNull List<String> pContexts) throws Ex;
+  }
 
 }
