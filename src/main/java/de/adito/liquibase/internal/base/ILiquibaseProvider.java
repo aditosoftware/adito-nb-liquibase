@@ -7,6 +7,7 @@ import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.*;
 
 import java.io.IOException;
+import java.sql.Connection;
 
 /**
  * Execute Actions on a single, valid Liquibase instance
@@ -26,6 +27,18 @@ public interface ILiquibaseProvider
   static ILiquibaseProvider getInstance(@NotNull IConnectionProvider pConnectionProvider)
   {
     return new LiquibaseProviderImpl(pConnectionProvider);
+  }
+
+  /**
+   * Provides a new ILiquibaseProvider instance
+   *
+   * @param pConnection Current connection
+   * @return the provider
+   */
+  @NotNull
+  static ILiquibaseProvider getInstance(@NotNull Connection pConnection)
+  {
+    return new LiquibaseProviderImpl(pConnection);
   }
 
   /**

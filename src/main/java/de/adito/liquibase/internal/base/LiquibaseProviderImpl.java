@@ -32,11 +32,17 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
   private static final String CLEAR_CHECKSUMS = "Clear checksums";
   private static final String CANCEL = "Cancel";
   private static final String SKIP = "Skip";
-  private final IConnectionProvider connectionProvider;
+  private IConnectionProvider connectionProvider;
+  private Connection connection;
 
   LiquibaseProviderImpl(@NotNull IConnectionProvider pConnectionProvider)
   {
     connectionProvider = pConnectionProvider;
+  }
+
+  LiquibaseProviderImpl(@NotNull Connection pConnection)
+  {
+    connection = pConnection;
   }
 
   @NbBundle.Messages("LBL_ActionProgress=Executing Liquibase Action...")
@@ -63,15 +69,18 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       }
     }
     AtomicReference<Ex> exRef = new AtomicReference<>();
-    connectionProvider.executeOnCurrentConnection(pCon -> {
-                                                    if (pChangelogRequired)
-                                                      return _getContexts(pChangeLogProvider, pCon);
-                                                    return Set.of();
-                                                  },
-                                                  (pCon, pStrings) -> {
-                                                    _executeOn(pChangeLogProvider, pExecutor, pCon, pStrings, exRef);
-                                                    return null;
-                                                  });
+    if (connectionProvider != null)
+      connectionProvider.executeOnCurrentConnection(pCon -> {
+                                                      if (pChangelogRequired)
+                                                        return _getContexts(pChangeLogProvider, pCon);
+                                                      return Set.of();
+                                                    },
+                                                    (pCon, pStrings) -> {
+                                                      _executeOn(pChangeLogProvider, pExecutor, pCon, pStrings, exRef);
+                                                      return null;
+                                                    });
+    else
+      _executeOn(pChangeLogProvider, pExecutor, connection, List.of(), exRef);
 
     // Exception thrown?
     if (exRef.get() != null)

@@ -208,28 +208,30 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   })
   private void _updateMessageLabel()
   {
-    // clear
-    messageLabel.setText("");
-    messageLabel.setIcon(null);
+    SwingUtilities.invokeLater(() -> {
+      // clear
+      messageLabel.setText("");
+      messageLabel.setIcon(null);
 
-    // new message
-    IPossibleConnectionProvider.IPossibleDBConnection connection = model.getSelectedConnectionAndContexts().first();
-    IJDBCURLTester tester = Lookup.getDefault().lookup(IJDBCURLTester.class);
-    if (connection != null && tester != null)
-    {
-      IJDBCURLTester.EResult result = tester.test(connection.getURL());
-      switch (result)
+      // new message
+      IPossibleConnectionProvider.IPossibleDBConnection connection = model.getSelectedConnectionAndContexts().first();
+      IJDBCURLTester tester = Lookup.getDefault().lookup(IJDBCURLTester.class);
+      if (connection != null && tester != null)
       {
-        case POTENTIALLY_REMOTE:
-          messageLabel.setIcon(warningIcon);
-          messageLabel.setText(Bundle.PotentiallyRemote());
-          break;
-        case REMOTE:
-          messageLabel.setIcon(warningIcon);
-          messageLabel.setText(Bundle.Remote());
-          break;
+        IJDBCURLTester.EResult result = tester.test(connection.getURL());
+        switch (result)
+        {
+          case POTENTIALLY_REMOTE:
+            messageLabel.setIcon(warningIcon);
+            messageLabel.setText(Bundle.PotentiallyRemote());
+            break;
+          case REMOTE:
+            messageLabel.setIcon(warningIcon);
+            messageLabel.setText(Bundle.Remote());
+            break;
+        }
       }
-    }
+    });
   }
 
   @Override
