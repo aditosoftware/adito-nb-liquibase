@@ -45,6 +45,12 @@
       <version>4.3.0</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.9.9</version>
+    </dependency>
+
     <!-- ADITO -->
     <dependency>
       <groupId>de.adito.nb-modules</groupId>
@@ -115,7 +121,7 @@
     <dependency>
       <groupId>org.netbeans.api</groupId>
       <artifactId>org-netbeans-modules-db</artifactId>
-      <version>${netbeans.version}</version>
+      <version>[RELEASE111-1.5.0-1]</version>
     </dependency>
     <dependency>
       <groupId>org.netbeans.api</groupId>

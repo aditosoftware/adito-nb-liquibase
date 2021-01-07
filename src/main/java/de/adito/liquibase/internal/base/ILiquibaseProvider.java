@@ -2,11 +2,12 @@ package de.adito.liquibase.internal.base;
 
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
-import liquibase.Liquibase;
+import liquibase.Contexts;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.*;
 
 import java.io.IOException;
+import java.sql.Connection;
 
 /**
  * Execute Actions on a single, valid Liquibase instance
@@ -29,6 +30,18 @@ public interface ILiquibaseProvider
   }
 
   /**
+   * Provides a new ILiquibaseProvider instance
+   *
+   * @param pConnection Current connection
+   * @return the provider
+   */
+  @NotNull
+  static ILiquibaseProvider getInstance(@NotNull Connection pConnection)
+  {
+    return new LiquibaseProviderImpl(pConnection);
+  }
+
+  /**
    * Execute an Action on a single, valid Liquibase instance
    *
    * @param pChangeLogProvider ChangeLogProvider, if ressources have to be used
@@ -36,12 +49,14 @@ public interface ILiquibaseProvider
    */
   <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException;
 
+  <Ex extends Exception> void executeOn(boolean pChangelogRequired, @Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException;
+
   /**
    * Consumer, to get liquibase instance
    */
   interface ILiquibaseConsumer<Ex extends Throwable>
   {
-    void accept(@NotNull Liquibase pLiquibase) throws Ex;
+    void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws Ex;
   }
 
 }

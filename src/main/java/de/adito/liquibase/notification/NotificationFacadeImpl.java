@@ -8,6 +8,7 @@ import org.openide.util.Exceptions;
 import org.openide.windows.WindowManager;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.lang.reflect.*;
 
@@ -16,6 +17,9 @@ import java.lang.reflect.*;
  */
 class NotificationFacadeImpl implements INotificationFacade
 {
+  private static final int _HEIGHT_SQL_DIALOG = 750;
+  private static final int _WIDTH_SQL_DIALOG = 1500;
+
   @Override
   public void showSql(@NotNull String pSqlText)
   {
@@ -34,8 +38,11 @@ class NotificationFacadeImpl implements INotificationFacade
       setText.setAccessible(true);
       setText.invoke(dialog, pSqlText);
 
-      dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
-      dialog.setVisible(true);
+      SwingUtilities.invokeLater(() -> {
+        dialog.setSize(new Dimension(_WIDTH_SQL_DIALOG, _HEIGHT_SQL_DIALOG));
+        dialog.setLocationRelativeTo(WindowManager.getDefault().getMainWindow());
+        dialog.setVisible(true);
+      });
     }
     catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException pE)
     {

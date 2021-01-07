@@ -103,7 +103,7 @@ public class SelectedNodesChangelogProvider implements IChangelogProvider
   private File _findChangelog(@NotNull Lookup pLookup)
   {
     return pLookup.lookupAll(FileObject.class).stream()
-        .filter(pFileObject -> pFileObject.getNameExt().endsWith("xml")) //todo change search
+        .filter(pFileObject -> pFileObject.getNameExt().endsWith("xml"))
         .map(FileUtil::toFile)
         .findFirst()
         .orElse(null);

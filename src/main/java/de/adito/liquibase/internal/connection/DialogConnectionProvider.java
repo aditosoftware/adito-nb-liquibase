@@ -2,7 +2,6 @@ package de.adito.liquibase.internal.connection;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider;
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider.IPossibleDBConnection.IConnectionFunction;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.*;
@@ -13,8 +12,11 @@ import java.awt.*;
 import java.beans.FeatureDescriptor;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Optional;
+import java.sql.Connection;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.function.*;
 
 /**
  * ConnectionProvider that asks the user to select a connection
@@ -28,26 +30,16 @@ public class DialogConnectionProvider implements IConnectionProvider
   private WeakReference<IPossibleConnectionProvider.IPossibleDBConnection> selectedConnectionRef;
 
   @Override
-  public <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull IConnectionFunction<T, Ex> pFunction) throws IOException, Ex
+  public <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Function<Connection, Set<String>> pGetContexts,
+                                                                @NotNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex
   {
-    IPossibleConnectionProvider.IPossibleDBConnection con = _findPersistedConnection(true);
+    Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> result = _findPersistedConnection(pGetContexts, true);
+    IPossibleConnectionProvider.IPossibleDBConnection con = result.first();
     if (con == null)
       throw new IOException("Failed to get current connection");
 
     // Execute something
-    return con.withJDBCConnection(pCon -> pFunction.apply(new UnclosableConnectionWrapper(pCon)));
-  }
-
-  @Override
-  public boolean hasConnectionsAvailable()
-  {
-    if (_findPersistedConnection(false) != null)
-      return true;
-
-    Project project = _findCurrentProject();
-    if (project != null)
-      return new SelectConnectionDialogModel(project, null).hasConnectionsAvailable();
-    return false;
+    return con.withJDBCConnection(pCon -> pFunction.apply(new UnclosableConnectionWrapper(pCon), result.second()));
   }
 
   @Override
@@ -69,10 +61,10 @@ public class DialogConnectionProvider implements IConnectionProvider
       "MSG_SelectConnection=Select Database Connection",
       "ACSD_SelectConnection=Select the database connection for generating connection code."
   })
-  @Nullable
-  private IPossibleConnectionProvider.IPossibleDBConnection _showSelectionDialog(@NotNull Project pProject) throws CancellationException
+  @NotNull
+  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _showSelectionDialog(@NotNull Function<Connection, Set<String>> pGetContexts, @NotNull Project pProject) throws CancellationException
   {
-    SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject, _getSelectedAliasDefinitionName());
+    SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject, _getSelectedAliasDefinitionName(), pGetContexts);
     SelectConnectionDialogPanel panel = new SelectConnectionDialogPanel(model);
     DialogDescriptor desc = new DialogDescriptor(panel, Bundle.MSG_SelectConnection());
 
@@ -85,7 +77,7 @@ public class DialogConnectionProvider implements IConnectionProvider
     panel.dispose();
 
     if (desc.getValue() == DialogDescriptor.OK_OPTION)
-      return model.getSelectedConnection();
+      return model.getSelectedConnectionAndContexts();
     else
       throw new CancellationException();
   }
@@ -114,29 +106,29 @@ public class DialogConnectionProvider implements IConnectionProvider
         .orElse(null);
   }
 
-  @Nullable
-  private IPossibleConnectionProvider.IPossibleDBConnection _findPersistedConnection(boolean pOpenNewConnection)
+  @NotNull
+  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _findPersistedConnection(@NotNull Function<Connection, Set<String>> pGetContexts,
+                                                                                                         @SuppressWarnings("SameParameterValue") boolean pOpenNewConnection)
   {
+    IPossibleConnectionProvider.IPossibleDBConnection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();
     synchronized (connectionLock)
     {
-      IPossibleConnectionProvider.IPossibleDBConnection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();
-
       // new connection?
       if (con == null && pOpenNewConnection)
       {
         // read new connection
         Project project = _findCurrentProject();
         if (project != null)
-          con = _showSelectionDialog(project);
-
-        // persist in ref
-        if (con != null)
-          selectedConnectionRef = new WeakReference<>(con);
+        {
+          Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> result = _showSelectionDialog(pGetContexts, project);
+          // persist in ref
+          if (result.first() != null)
+            selectedConnectionRef = new WeakReference<>(result.first());
+          return result;
+        }
       }
-
-      // finished
-      return con;
     }
+    // finished
+    return Pair.of(con, List.of());
   }
-
 }

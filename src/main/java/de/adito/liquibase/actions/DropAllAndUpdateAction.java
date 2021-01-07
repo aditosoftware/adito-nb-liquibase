@@ -1,6 +1,5 @@
 package de.adito.liquibase.actions;
 
-import de.adito.liquibase.internal.connection.IConnectionProvider;
 import de.adito.liquibase.internal.executors.ILiquibaseExecutorFacade;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
@@ -26,15 +25,8 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
   @Override
   protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
   {
-    // get connection provider to persist user selection
-    // and only show selection dialog once
-    IConnectionProvider connectionProvider = getConnectionProvider();
-
-    // Drop All
-    ILiquibaseExecutorFacade.INSTANCE.executeDropAll(connectionProvider);
-
-    // Update
-    ILiquibaseExecutorFacade.INSTANCE.executeUpdate(connectionProvider, getChangelogProvider());
+    // Drop All & Update
+    ILiquibaseExecutorFacade.INSTANCE.executeDropAllAndUpdate(getConnectionProvider(), getChangelogProvider());
   }
 
   @Override
