@@ -23,7 +23,7 @@ import java.util.concurrent.CancellationException;
 @ActionID(id = "de.adito.liquibase.actions.db.GenerateChangelogAction", category = "Database")
 @ActionRegistration(displayName = "#CTL_GenerateChangelog", lazy = false)
 @ActionReferences(value = {
-    @ActionReference(path = "Databases/Explorer/Table/Actions", position = 127)
+    @ActionReference(path = "Databases/Explorer/Table/Actions", position = 127, separatorBefore = 126)
 })
 public class GenerateChangelogAction extends AbstractLiquibaseAction
 {
@@ -56,5 +56,11 @@ public class GenerateChangelogAction extends AbstractLiquibaseAction
     if (parent == null)
       return pNode.getDisplayName();
     return _getRootNodeName(parent);
+  }
+
+  @Override
+  protected boolean asynchronous()
+  {
+    return false;
   }
 }

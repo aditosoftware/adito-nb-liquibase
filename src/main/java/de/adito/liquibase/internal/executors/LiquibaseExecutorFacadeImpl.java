@@ -7,9 +7,12 @@ import de.adito.liquibase.internal.connection.IConnectionProvider;
 import de.adito.liquibase.internal.executors.generate.GenerateChangelogOptionsPanel;
 import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.*;
+import liquibase.configuration.*;
+import liquibase.diff.output.*;
+import liquibase.diff.output.changelog.DiffToChangeLog;
 import liquibase.exception.*;
-import liquibase.integration.ant.GenerateChangeLogTask;
 import liquibase.integration.ant.type.ChangeLogOutputFile;
+import liquibase.structure.DatabaseObject;
 import org.apache.tools.ant.types.resources.FileResource;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.actions.Openable;
@@ -18,6 +21,7 @@ import org.openide.*;
 import org.openide.filesystems.*;
 import org.openide.util.*;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.sql.Connection;
 import java.util.*;
@@ -209,28 +213,87 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
 
       if (success)
       {
-        _generateChangelog(pLiquibase, pTableName, dialog.getPath(), dialog.getAuthor(), dialog.isCatalogIncluded(), dialog.isSchemaIncluded());
+        List<Class<? extends DatabaseObject>> types = new ArrayList<>();
+        dialog.getGenerateTypes().forEach(pType -> types.addAll(pType.getSnapshotTypes()));
+        //noinspection unchecked
+        _createChangelogFile(pLiquibase, pTableName, dialog.getPath(), dialog.getAuthor(), dialog.isCatalogIncluded(), dialog.isSchemaIncluded(),
+                             types.toArray(new Class[0]));
         INotificationFacade.INSTANCE.notify(Bundle.LBL_TitleGenerate(), Bundle.LBL_MessageGenerate(), false, null);
       }
     });
   }
 
-  private void _generateChangelog(@NotNull Liquibase pLiquibase, @NotNull String pTableName, @NotNull String pFullPath, @NotNull String pAuthor,
-                                  boolean pIncludeCatalog, boolean pIncludeSchema)
+  /**
+   * Generates a Changelog-File
+   */
+  private void _createChangelogFile(@NotNull Liquibase pLiquibase, @NotNull String pTableName, @NotNull String pFullPath, @NotNull String pAuthor,
+                                    boolean pIncludeCatalog, boolean pIncludeSchema, Class<? extends DatabaseObject>[] pSnapshotTypes) throws LiquibaseException
   {
-    GenerateChangeLogTask task = new _AditoGenerateChangelogTask(pLiquibase);
+    CatalogAndSchema catalogAndSchema = new CatalogAndSchema(pLiquibase.getDatabase().getDefaultCatalogName(), pLiquibase.getDatabase().getDefaultSchemaName());
+    DiffOutputControl diffOutputControl = new DiffOutputControl(pIncludeCatalog, pIncludeSchema, true, null);
+    diffOutputControl.setObjectChangeFilter(new StandardObjectChangeFilter(StandardObjectChangeFilter.FilterType.INCLUDE, "table:" + pTableName));
+    DiffToChangeLog diffToChangeLog = new DiffToChangeLog(diffOutputControl);
+
     ChangeLogOutputFile outputFile = new ChangeLogOutputFile();
-
     File f = new File(pFullPath);
-    outputFile.setOutputFile(new FileResource(f));
-    task.addConfiguredXml(outputFile);
-    task.setIncludeCatalog(pIncludeCatalog);
-    task.setIncludeSchema(pIncludeSchema);
-    task.setIncludeObjects("table:" + pTableName);
-    task.executeWithLiquibaseClassloader();
+    FileResource resource = new FileResource(f);
+    outputFile.setOutputFile(resource);
 
-    FileObject fo = FileUtil.toFileObject(f);
+    String encoding = outputFile.getEncoding();
+    if (encoding == null)
+      encoding = _getDefaultOutputEncoding();
 
+    OutputStream outstream = null;
+    try
+    {
+      outstream = resource.getOutputStream();
+      PrintStream printStream = new PrintStream(outstream, true, encoding);
+      pLiquibase.generateChangeLog(catalogAndSchema, diffToChangeLog, printStream, pSnapshotTypes);
+
+      outstream.close();
+    }
+    catch (DatabaseException | ParserConfigurationException | IOException pE)
+    {
+      // if something fails, delete the file
+      if (outstream != null)
+      {
+        try
+        {
+          outstream.close();
+        }
+        catch (IOException pIOException)
+        {
+          throw new LiquibaseException(pIOException);
+        }
+      }
+      //noinspection ResultOfMethodCallIgnored
+      f.delete();
+      throw new LiquibaseException(pE);
+    }
+
+    _modifyChangeset(f, pAuthor);
+  }
+
+  /**
+   * @return the default encoding of the global liqubiase configuration
+   */
+  private String _getDefaultOutputEncoding()
+  {
+    LiquibaseConfiguration liquibaseConfiguration = LiquibaseConfiguration.getInstance();
+    GlobalConfiguration globalConfiguration = liquibaseConfiguration.getConfiguration(GlobalConfiguration.class);
+    return globalConfiguration.getOutputEncoding();
+  }
+
+  /**
+   * Changes the author and sets an unique UUID of each changeset and opens the file.
+   *
+   * @param pFile   the file, which should be modified
+   * @param pAuthor the name of the author
+   * @throws LiquibaseException when something goes wrong
+   */
+  private void _modifyChangeset(@NotNull File pFile, @NotNull String pAuthor) throws LiquibaseException
+  {
+    FileObject fo = FileUtil.toFileObject(pFile);
 
     try
     {
@@ -261,25 +324,9 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
     }
     catch (IOException pE)
     {
-      pE.printStackTrace();
+      throw new LiquibaseException(pE);
     }
     for (Openable openable : fo.getLookup().lookupAll(Openable.class))
       openable.open();
-  }
-
-  private static class _AditoGenerateChangelogTask extends GenerateChangeLogTask
-  {
-    private final Liquibase liquibase;
-
-    private _AditoGenerateChangelogTask(Liquibase pLiquibase)
-    {
-      liquibase = pLiquibase;
-    }
-
-    @Override
-    protected Liquibase getLiquibase()
-    {
-      return liquibase;
-    }
   }
 }

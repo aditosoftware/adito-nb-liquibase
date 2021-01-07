@@ -13,6 +13,9 @@ import javax.swing.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.io.*;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Panel with user interaction for the GENERATE CHANGELOG command
@@ -27,14 +30,17 @@ public class GenerateChangelogOptionsPanel extends JPanel
   private final JCheckBox catalogChbx;
   private final JCheckBox schemaChbx;
   private DialogDescriptor desc;
+
   private final String subfolderName;
+  private final List<JCheckBox> chbxGenerateTypes = new ArrayList<>();
 
   @NbBundle.Messages({
       "LBL_ChbxCatalog=Include Catalog",
       "LBL_ChbxSchema=Include Schema",
       "LBL_PathChangelog=Path",
       "LBL_NameChangelog=ChangeLog Name",
-      "LBL_AuthorChangelog=Author"
+      "LBL_AuthorChangelog=Author",
+      "LBL_Types=Types"
   })
   public GenerateChangelogOptionsPanel(@Nullable String pSubfolderName)
   {
@@ -45,7 +51,7 @@ public class GenerateChangelogOptionsPanel extends JPanel
     double gap = 8;
 
     double[] cols = {gap, pref, gap, fill, gap, pref, gap};
-    double[] rows = {gap, pref, gap, pref, gap, pref, gap, pref, gap, pref, fill};
+    double[] rows = {gap, pref, gap, pref, gap, pref, gap, pref, gap, pref, gap, pref, fill};
 
     catalogChbx = new JCheckBox(Bundle.LBL_ChbxCatalog());
     schemaChbx = new JCheckBox(Bundle.LBL_ChbxSchema());
@@ -64,7 +70,27 @@ public class GenerateChangelogOptionsPanel extends JPanel
     add(catalogChbx, "3,7");
     add(schemaChbx, "3,9");
 
+    add(new JLabel(Bundle.LBL_Types()), "1,11");
+    add(_createTypeChbxs(), "3,11");
+
     setPreferredSize(new Dimension(800, (int) getPreferredSize().getHeight()));
+  }
+
+  private JComponent _createTypeChbxs()
+  {
+    JPanel container = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+
+    Arrays.stream(EGenerateType.values()).forEach(pType -> {
+      JCheckBox chbx = new JCheckBox(pType.getDisplayName());
+      chbx.setSelected(pType.isDefaultType());
+      chbx.setName(pType.name());
+      chbx.addActionListener(evt -> _validate());
+
+      container.add(chbx);
+      chbxGenerateTypes.add(chbx);
+    });
+
+    return container;
   }
 
   private JComponent _createPathTextfield()
@@ -155,7 +181,7 @@ public class GenerateChangelogOptionsPanel extends JPanel
 
     String path = pathTxt.getText();
     String name = changelogNameTxt.getText();
-    if ("".equals(path) || "".equals(name))
+    if ("".equals(path) || "".equals(name) || getGenerateTypes().isEmpty())
     {
       desc.setValid(false);
       return;
@@ -202,6 +228,11 @@ public class GenerateChangelogOptionsPanel extends JPanel
     return desc.getValue() == DialogDescriptor.OK_OPTION;
   }
 
+  /**
+   * Returns the full path to the changelog-file. The filename ends with ".xml"
+   *
+   * @return the full path
+   */
   public String getPath()
   {
     String name = changelogNameTxt.getText();
@@ -224,5 +255,14 @@ public class GenerateChangelogOptionsPanel extends JPanel
   public String getAuthor()
   {
     return authorTxt.getText();
+  }
+
+  public List<EGenerateType> getGenerateTypes()
+  {
+    return chbxGenerateTypes.stream()
+        .filter(AbstractButton::isSelected)
+        .map(Component::getName)
+        .map(EGenerateType::valueOf)
+        .collect(Collectors.toList());
   }
 }

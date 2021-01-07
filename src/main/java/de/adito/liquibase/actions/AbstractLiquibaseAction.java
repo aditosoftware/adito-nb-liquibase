@@ -73,7 +73,7 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
   }
 
   @Override
-  protected final boolean asynchronous()
+  protected boolean asynchronous()
   {
     return true;
   }
