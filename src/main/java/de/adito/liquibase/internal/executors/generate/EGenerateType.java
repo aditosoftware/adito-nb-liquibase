@@ -14,7 +14,7 @@ import java.util.*;
  */
 @NbBundle.Messages({
     "LBL_Data=Data",
-    "LBL_TableStructure=Table-Structure"
+    "LBL_TableStructure=Structure"
 })
 public enum EGenerateType
 {

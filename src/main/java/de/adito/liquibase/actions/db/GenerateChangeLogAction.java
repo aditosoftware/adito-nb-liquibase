@@ -25,7 +25,7 @@ import java.util.concurrent.CancellationException;
 @ActionReferences(value = {
     @ActionReference(path = "Databases/Explorer/Table/Actions", position = 127, separatorBefore = 126)
 })
-public class GenerateChangelogAction extends AbstractLiquibaseAction
+public class GenerateChangeLogAction extends AbstractLiquibaseAction
 {
 
   @Override
@@ -37,7 +37,7 @@ public class GenerateChangelogAction extends AbstractLiquibaseAction
   @Override
   public String getName()
   {
-    return NbBundle.getMessage(GenerateChangelogAction.class, "CTL_GenerateChangelog");
+    return NbBundle.getMessage(GenerateChangeLogAction.class, "CTL_GenerateChangelog");
   }
 
   @Override

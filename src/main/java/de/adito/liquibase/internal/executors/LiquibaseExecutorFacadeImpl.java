@@ -5,6 +5,7 @@ import de.adito.liquibase.internal.base.*;
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import de.adito.liquibase.internal.executors.generate.GenerateChangelogOptionsPanel;
+import de.adito.liquibase.nb.NbUtil;
 import de.adito.liquibase.notification.INotificationFacade;
 import liquibase.*;
 import liquibase.configuration.*;
@@ -15,7 +16,6 @@ import liquibase.integration.ant.type.ChangeLogOutputFile;
 import liquibase.structure.DatabaseObject;
 import org.apache.tools.ant.types.resources.FileResource;
 import org.jetbrains.annotations.*;
-import org.netbeans.api.actions.Openable;
 import org.netbeans.api.project.*;
 import org.openide.*;
 import org.openide.filesystems.*;
@@ -326,7 +326,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
     {
       throw new LiquibaseException(pE);
     }
-    for (Openable openable : fo.getLookup().lookupAll(Openable.class))
-      openable.open();
+
+    NbUtil.open(pFile);
   }
 }

@@ -2,6 +2,7 @@ package de.adito.liquibase.actions;
 
 
 import com.google.common.base.Charsets;
+import de.adito.liquibase.nb.NbUtil;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.openide.awt.*;
@@ -16,13 +17,13 @@ import java.util.concurrent.CancellationException;
  * @author w.glanzer, 10.08.2020
  */
 @NbBundle.Messages({
-    "CTL_NewChangesetAction=New ChangeSet...",
-    "LBL_EnterNewName_changeset=ChangeSet Name:"
+    "CTL_NewChangesetAction=New Changeset...",
+    "LBL_EnterNewName_changeset=Changeset Name:"
 })
 @ActionID(category = "Liquibase", id = "de.adito.liquibase.actions.NewChangesetAction")
 @ActionRegistration(displayName = "#CTL_NewChangesetAction", lazy = false)
 @ActionReference(path = "de/adito/aod/action/aliasDefinition/new", position = 200, separatorAfter = 250)
-public class NewChangesetAction extends AbstractFolderBasedAction
+public class NewChangeSetAction extends AbstractFolderBasedAction
 {
 
   private static final String _TEMPLATE;
@@ -31,7 +32,7 @@ public class NewChangesetAction extends AbstractFolderBasedAction
   {
     try
     {
-      _TEMPLATE = IOUtils.toString(NewChangesetAction.class.getResource("changeset.xml"), Charsets.UTF_8);
+      _TEMPLATE = IOUtils.toString(NewChangeSetAction.class.getResource("changeset.xml"), Charsets.UTF_8);
     }
     catch (IOException e)
     {
@@ -53,6 +54,8 @@ public class NewChangesetAction extends AbstractFolderBasedAction
     {
       IOUtils.write(_TEMPLATE.replace("${UUID}", UUID.randomUUID().toString()), fos, Charsets.UTF_8);
     }
+
+    NbUtil.open(target);
   }
 
   @NotNull

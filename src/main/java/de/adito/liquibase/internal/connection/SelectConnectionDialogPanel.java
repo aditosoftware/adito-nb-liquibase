@@ -25,7 +25,6 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   private final CompositeDisposable disposable = new CompositeDisposable();
   private JPanel contextsPanel;
   private JLabel messageLabel;
-  private JLabel contextsLabel;
   private final JLabel loadingIconLabel = new JLabel();
   private ImageIcon loadingIcon;
   private ImageIcon warningIcon;
@@ -99,8 +98,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   @NbBundle.Messages("AvailableContexts=Available Contexts:")
   private JComponent _createContextLabel()
   {
-    contextsLabel = new JLabel(Bundle.AvailableContexts());
-    return contextsLabel;
+    return new JLabel(Bundle.AvailableContexts());
   }
 
   private JComponent _createContextsPanel()
@@ -114,39 +112,33 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   /**
    * Shows the contexts as Checkboxes. Also adds an default-Checkbox
    */
-  @NbBundle.Messages("DefaultContext=default Context")
+  @NbBundle.Messages("DefaultContext=default")
   private void _showContexts(Set<String> pContexts)
   {
     if (contextsPanel != null)
     {
       contextsPanel.removeAll();
 
-      if (pContexts.isEmpty())
-        contextsLabel.setVisible(false);
-      else
-      {
-        contextsLabel.setVisible(true);
-        JCheckBox defaultChbx = new JCheckBox(Bundle.DefaultContext());
-        defaultChbx.setEnabled(false);
-        defaultChbx.setSelected(true);
-        defaultChbx.setBorder(new EmptyBorder(0, -3, 0, 0));
-        model.contextSelected("", true);
+      JCheckBox defaultChbx = new JCheckBox(Bundle.DefaultContext());
+      defaultChbx.setEnabled(false);
+      defaultChbx.setSelected(true);
+      defaultChbx.setBorder(new EmptyBorder(0, -3, 0, 0));
+      model.contextSelected("", true);
 
-        contextsPanel.add(defaultChbx);
+      contextsPanel.add(defaultChbx);
 
-        pContexts.forEach(pContextName -> {
-          JCheckBox chbx = new JCheckBox(pContextName);
-          chbx.addActionListener(al -> model.contextSelected(pContextName, chbx.isSelected()));
-          contextsPanel.add(chbx);
-        });
-      }
-
-      WindowManager.getDefault().invokeWhenUIReady(() -> {
-        revalidate();
-        contextsPanel.repaint();
-        repaint();
+      pContexts.forEach(pContextName -> {
+        JCheckBox chbx = new JCheckBox(pContextName);
+        chbx.addActionListener(al -> model.contextSelected(pContextName, chbx.isSelected()));
+        contextsPanel.add(chbx);
       });
     }
+
+    WindowManager.getDefault().invokeWhenUIReady(() -> {
+      revalidate();
+      contextsPanel.repaint();
+      repaint();
+    });
   }
 
   /**

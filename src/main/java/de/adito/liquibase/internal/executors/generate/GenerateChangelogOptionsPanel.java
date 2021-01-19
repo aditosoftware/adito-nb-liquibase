@@ -38,9 +38,10 @@ public class GenerateChangelogOptionsPanel extends JPanel
       "LBL_ChbxCatalog=Include Catalog",
       "LBL_ChbxSchema=Include Schema",
       "LBL_PathChangelog=Path",
-      "LBL_NameChangelog=ChangeLog Name",
+      "LBL_NameChangelog=Changelog Name",
       "LBL_AuthorChangelog=Author",
-      "LBL_Types=Types"
+      "LBL_Types=Types",
+      "LBL_Advanced=Advanced"
   })
   public GenerateChangelogOptionsPanel(@Nullable String pSubfolderName)
   {
@@ -51,7 +52,7 @@ public class GenerateChangelogOptionsPanel extends JPanel
     double gap = 8;
 
     double[] cols = {gap, pref, gap, fill, gap, pref, gap};
-    double[] rows = {gap, pref, gap, pref, gap, pref, gap, pref, gap, pref, gap, pref, fill};
+    double[] rows = {gap, pref, gap, pref, gap, pref, gap, pref, gap, pref, fill};
 
     catalogChbx = new JCheckBox(Bundle.LBL_ChbxCatalog());
     schemaChbx = new JCheckBox(Bundle.LBL_ChbxSchema());
@@ -67,11 +68,14 @@ public class GenerateChangelogOptionsPanel extends JPanel
     add(new JLabel(Bundle.LBL_AuthorChangelog()), "1,5");
     add(_createAuthorTextfield(), "3,5");
 
-    add(catalogChbx, "3,7");
-    add(schemaChbx, "3,9");
+    add(new JLabel(Bundle.LBL_Advanced()), "1,7");
+    JPanel container = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+    container.add(catalogChbx);
+    container.add(schemaChbx);
+    add(container, "3,7");
 
-    add(new JLabel(Bundle.LBL_Types()), "1,11");
-    add(_createTypeChbxs(), "3,11");
+    add(new JLabel(Bundle.LBL_Types()), "1,9");
+    add(_createTypeChbxs(), "3,9");
 
     setPreferredSize(new Dimension(800, (int) getPreferredSize().getHeight()));
   }
