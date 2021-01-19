@@ -5,6 +5,18 @@ OpenIDE-Module-Display-Category: ADITO / Database
 OpenIDE-Module-Short-Description: Integrates simple tooling for Liquibase systems
 OpenIDE-Module-Long-Description: Integrates simple tooling for Liquibase systems
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v.1.4.0</p>
+    <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
+    <ul>
+      <li>Blueprints with type "liquibase" appear now in the context menue of Liquibase folders</li>
+      <li>"Generate Update SQL" and "Generate Future Rollback SQL" liquibase commands are shown in the context menue of changelogs</li>
+      <li>The Changelog of existing db-tables can be generated, optional with data</li>
+      <li>Liquibase Contexts are now supported. Before a Liquibase command is executed, the contexts can be selected</li>
+    </ul>
+    <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+    <ul>
+      <li>Uniform notation of "Changelog" and "Changeset"</li>
+    </ul>
   <p style="font-weight: bold;">v.1.3.5</p>
   <p style="margin-left: 10px; font-weight: bold;">MAJOR</p>
   <ul>
