@@ -8,7 +8,6 @@
     <groupId>de.adito.nbm</groupId>
     <artifactId>NbPluginBuildSectionParent</artifactId>
     <version>1.0.1</version>
-    <relativePath/>
   </parent>
 
   <groupId>de.adito.aditoweb.nbm</groupId>
