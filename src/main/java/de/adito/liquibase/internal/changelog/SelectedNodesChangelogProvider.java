@@ -12,7 +12,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Reads the currently selected nodes and extracts the selected changelog file
+ * Reads the currently selected nodes and extracts the selected changelog.xml-file
  *
  * @author w.glanzer, 10.08.2020
  */
@@ -25,20 +25,20 @@ public class SelectedNodesChangelogProvider implements IChangelogProvider
   {
     Lookup context = Utilities.actionsGlobalContext();
 
-    File inContext = _findChangelog(context);
+    File inContext = findChangelog(context);
     if (inContext != null)
       return inContext;
 
     for (Node node : context.lookupAll(Node.class))
     {
-      File inNode = _findChangelog(node.getLookup());
+      File inNode = findChangelog(node.getLookup());
       if (inNode != null)
         return inNode;
 
       // single recursion stage
       for (Node childNode : node.getChildren().getNodes())
       {
-        File inChildNode = _findChangelog(childNode.getLookup());
+        File inChildNode = findChangelog(childNode.getLookup());
         if (inChildNode != null)
           return inChildNode;
       }
@@ -94,19 +94,18 @@ public class SelectedNodesChangelogProvider implements IChangelogProvider
   }
 
   /**
-   * Returns the changelog file in a given lookup
+   * Returns the changelog.xml-file in a given lookup
    *
    * @param pLookup Lookup
    * @return File or null, if no changelog was found
    */
   @Nullable
-  private File _findChangelog(@NotNull Lookup pLookup)
+  protected File findChangelog(@NotNull Lookup pLookup)
   {
     return pLookup.lookupAll(FileObject.class).stream()
-        .filter(pFileObject -> pFileObject.getNameExt().endsWith("xml"))
+        .filter(pFileObject -> pFileObject.getNameExt().equalsIgnoreCase("changelog.xml"))
         .map(FileUtil::toFile)
         .findFirst()
         .orElse(null);
   }
-
 }

@@ -22,7 +22,17 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
 {
 
   private final IConnectionProvider connectionProvider = new DialogConnectionProvider();
-  private final IChangelogProvider changelogProvider = new SelectedNodesChangelogProvider();
+  private final IChangelogProvider changelogProvider;
+
+  public AbstractLiquibaseAction()
+  {
+    this(new SelectedNodesChangelogProvider());
+  }
+
+  public AbstractLiquibaseAction(@NotNull IChangelogProvider pChangelogProvider)
+  {
+    changelogProvider = pChangelogProvider;
+  }
 
   @Override
   protected final void performAction(Node[] pNodes)

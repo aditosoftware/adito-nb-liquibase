@@ -1,6 +1,7 @@
 package de.adito.liquibase.actions.changelog;
 
 import de.adito.liquibase.actions.AbstractLiquibaseAction;
+import de.adito.liquibase.internal.changelog.SelectedNodesXmlProvider;
 import de.adito.liquibase.internal.executors.ILiquibaseExecutorFacade;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,12 @@ import java.util.concurrent.CancellationException;
 @ActionReference(path = "Plugins/Liquibase/Changelog/Actions", position = 151)
 public class UpdateAndRollbackAction extends AbstractLiquibaseAction
 {
+
+  public UpdateAndRollbackAction()
+  {
+    super(new SelectedNodesXmlProvider());
+  }
+
   @Override
   protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
   {
