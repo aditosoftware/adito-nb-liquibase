@@ -179,4 +179,17 @@
 
   </dependencies>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.netbeans.utilities</groupId>
+        <artifactId>nbm-maven-plugin</artifactId>
+        <version>4.5</version>
+        <extensions>true</extensions>
+        <configuration>
+          <requiresRestart>true</requiresRestart>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
