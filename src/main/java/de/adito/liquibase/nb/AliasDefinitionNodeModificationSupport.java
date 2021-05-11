@@ -56,6 +56,9 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
   private static class _AliasDefinitionNode extends FilterNode implements Disposable
   {
     private final CompositeDisposable disposable;
+    private Boolean changeOriginal = null;
+    private _FolderNode node = null;
+    private List<String[]> expanded = null;
 
     private _AliasDefinitionNode(@NotNull Node pAliasDefNode)
     {
@@ -64,16 +67,48 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
 
     private _AliasDefinitionNode(@NotNull Node pAliasDefNode, @NotNull InstanceContent pInstanceContent)
     {
-      super(new AbstractNode(Children.LEAF), null,
+      super(new AbstractNode(org.openide.nodes.Children.LEAF), null,
             new ProxyLookup(new AbstractLookup(pInstanceContent), Lookups.exclude(pAliasDefNode.getLookup(), Node.class)));
 
       disposable = new CompositeDisposable();
+      disposable.add(_watchLiquibaseFolder(pAliasDefNode).subscribe(pFileObject -> {
+        if (pFileObject.isPresent())
+        {
+          // change original only once
+          if (Boolean.TRUE.equals(changeOriginal))
+          {
+            Node foNode = _getNode(pFileObject.get());
+            // Create node only once
+            if (node == null)
+            {
+              node = new _FolderNode(foNode != null ? foNode : new AbstractNode(Children.LEAF));
+              changeOriginal(node, true);
+              changeOriginal(pAliasDefNode, false);
+            }
+            else
+            {
+              if (foNode != null)
+                node.changeOriginal(foNode);
+              if (expanded != null)
+              {
+                ProjectTabUtil.setExpandedNodes(expanded);
+                expanded = null;
+              }
+            }
+            changeOriginal = false;
+          }
+        }
+        // if fileObject isn't present, on the next event the original must be changed
+        else if (Boolean.FALSE.equals(changeOriginal))
+          changeOriginal = true;
 
-      // Original Changing Disposable
-      disposable.add(_watchLiquibaseFolderNode(pAliasDefNode).subscribe(pFolderNodeOpt -> FilterNode.Children.MUTEX.postWriteRequest(() -> {
-        changeOriginal(new _FolderNode(pFolderNodeOpt.orElseGet(() -> new AbstractNode(Children.LEAF))), true);
-        changeOriginal(pAliasDefNode, false);
-      })));
+        // Change only once the original of the alias node
+        if (changeOriginal == null)
+        {
+          changeOriginal(pAliasDefNode, false);
+          changeOriginal = true;
+        }
+      }));
 
       // Liquibase-Folder-Mover
       disposable.add(_watchAliasAODFile(pAliasDefNode)
@@ -113,7 +148,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
      * @return the liquibase folder observable
      */
     @NotNull
-    private Observable<Optional<Node>> _watchLiquibaseFolderNode(@NotNull Node pAliasDefNode)
+    private Observable<Optional<FileObject>> _watchLiquibaseFolder(@NotNull Node pAliasDefNode)
     {
       return _watchAliasAODFile(pAliasDefNode)
 
@@ -128,14 +163,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
               .orElseGet(() -> Observable.just(Optional.empty())))
 
           // only changes
-          .distinctUntilChanged()
-
-          // FileObject to Node
-          .switchMap(pFileOpt -> pFileOpt
-              .map(this::_getNode)
-              .map(pNode -> NodeObservable.create(pNode)
-                  .map(Optional::of))
-              .orElseGet(() -> Observable.just(Optional.empty())));
+          .distinctUntilChanged();
     }
 
     /**
@@ -188,7 +216,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
     /**
      * Consumer that accepts a new name for our liquibase folder
      */
-    private static class _LiquibaseFolderMover implements Consumer<Optional<FileObject>>
+    private class _LiquibaseFolderMover implements Consumer<Optional<FileObject>>
     {
       private AtomicReference<Project> projectDirRef;
       private AtomicReference<String> oldNameRef;
@@ -211,6 +239,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
             return;
           }
 
+          expanded = ProjectTabUtil.getExpandedNodes();
           Project project = projectDirRef.get();
           String newName = pNewData.map(FileObject::getName).orElse(null);
           String oldName = oldNameRef.getAndSet(newName);
@@ -261,6 +290,12 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
       }
 
       return actions.toArray(new Action[0]);
+    }
+
+    public void changeOriginal(@NotNull Node pNode)
+    {
+      if (!pNode.equals(getOriginal()))
+        changeOriginal(pNode, true);
     }
 
     @Override

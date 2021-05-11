@@ -26,7 +26,7 @@
       <artifactId>liquibase-core</artifactId>
       <version>4.2.2-adito</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -59,7 +59,7 @@
     <dependency>
       <groupId>de.adito.nb-modules</groupId>
       <artifactId>de-adito-netbeans-utilities</artifactId>
-      <version>RELEASE122-1.6.1</version>
+      <version>RELEASE122-1.6.2</version>
     </dependency>
 
     <!-- Blueprint-API -->
