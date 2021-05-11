@@ -6,7 +6,7 @@ import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import de.adito.liquibase.internal.executors.generate.GenerateChangelogOptionsPanel;
 import de.adito.liquibase.nb.NbUtil;
-import de.adito.liquibase.notification.INotificationFacade;
+import de.adito.notification.INotificationFacade;
 import liquibase.*;
 import liquibase.configuration.*;
 import liquibase.diff.output.*;

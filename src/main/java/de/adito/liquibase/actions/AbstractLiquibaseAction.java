@@ -3,7 +3,7 @@ package de.adito.liquibase.actions;
 import de.adito.actions.AbstractAsyncNodeAction;
 import de.adito.liquibase.internal.changelog.*;
 import de.adito.liquibase.internal.connection.*;
-import de.adito.liquibase.notification.INotificationFacade;
+import de.adito.notification.INotificationFacade;
 import liquibase.exception.LiquibaseException;
 import org.jetbrains.annotations.NotNull;
 import org.openide.LifecycleManager;

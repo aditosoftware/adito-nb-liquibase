@@ -2,7 +2,7 @@ package de.adito.liquibase.actions;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
 import de.adito.liquibase.nb.LiquibaseFolderService;
-import de.adito.liquibase.notification.INotificationFacade;
+import de.adito.notification.INotificationFacade;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.*;

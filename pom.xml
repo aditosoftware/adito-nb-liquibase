@@ -59,7 +59,7 @@
     <dependency>
       <groupId>de.adito.nb-modules</groupId>
       <artifactId>de-adito-netbeans-utilities</artifactId>
-      <version>RELEASE111-1.4.0-5</version>
+      <version>RELEASE122-1.6.1</version>
     </dependency>
 
     <!-- Blueprint-API -->
