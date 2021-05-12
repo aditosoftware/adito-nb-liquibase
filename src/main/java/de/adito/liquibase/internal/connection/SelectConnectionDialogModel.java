@@ -12,7 +12,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Model for the "SelectConnection" Dialog
@@ -25,14 +25,14 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   private final Set<_Item> availableData = new HashSet<>();
   private final List<_Item> shownData = new ArrayList<>();
   private final BehaviorSubject<Boolean> showAllConnections = BehaviorSubject.create();
-  private final BehaviorSubject<Set<String>> contexts = BehaviorSubject.create();
+  private final BehaviorSubject<Set<String>> contextsLoaded = BehaviorSubject.create();
+  private final BehaviorSubject<Optional<_Item>> connections = BehaviorSubject.create();
+  private final BehaviorSubject<Pair<String, Boolean>> selectedContextsChanged = BehaviorSubject.create(); // name of context and disabled/enabled
   private final Set<String> selectedContexts = new HashSet<>();
   private final List<IConnectionLoaderStateListener> connectionStateListeners = new ArrayList<>();
-  private final Function<Connection, Set<String>> getContexts;
 
-  SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName, @NotNull Function<Connection, Set<String>> pGetContexts)
+  SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName, @NotNull Supplier<Set<String>> pGetContexts)
   {
-    getContexts = pGetContexts;
     SwingUtilities.invokeLater(() -> {
       _loadAsync(pProject, pPreselectedSourceName);
 
@@ -47,6 +47,8 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
       if (pPreselectedSourceName != null)
         _tryPreselect(pPreselectedSourceName);
     });
+
+    _loadContexts(pGetContexts);
   }
 
   @Override
@@ -92,6 +94,15 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   }
 
   /**
+   * @return Creates an Observable, that checks, if the current selection in the dialog is valid
+   */
+  @NotNull
+  public Observable<Boolean> observeIsValid()
+  {
+    return Observable.combineLatest(selectedContextsChanged, connections, (pContexts, pItem) -> !selectedContexts.isEmpty() && pItem.isPresent());
+  }
+
+  /**
    * Does load all connections whose loading time is potentially long - because of this, the loading is done asynchronously
    *
    * @param pProject    Project for which to load connections
@@ -114,7 +125,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
         else
           loadingState = IConnectionLoaderStateListener.ELoadingState.FINISHED_FOUND_SELECTED;
       }
-      if (contexts.getValue() != null)
+      if (contextsLoaded.getValue() != null)
         fireConnectionStateChanged(loadingState);
     }).start();
   }
@@ -157,6 +168,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
       selectedContexts.add(pContextName);
     else
       selectedContexts.remove(pContextName);
+    selectedContextsChanged.onNext(Pair.of(pContextName, pEnabled));
   }
 
   /**
@@ -166,7 +178,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   public Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> getSelectedConnectionAndContexts()
   {
     List<String> selected;
-    if (contexts.getValue() == null)
+    if (contextsLoaded.getValue() == null)
       selected = new ArrayList<>();
     else
       selected = new ArrayList<>(selectedContexts);
@@ -181,41 +193,33 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   @Override
   public void setSelectedItem(Object anObject)
   {
+    if (anObject == null)
+      connections.onNext(Optional.empty());
+    else
+      connections.onNext(Optional.of((_Item) anObject));
     if (Objects.equals(anObject, getSelectedItem()))
       return;
 
     super.setSelectedItem(anObject);
-    if (anObject != null)
-    {
-      _Item item = (_Item) anObject;
-      _loadContexts(item.connection);
-    }
   }
 
-  private void _loadContexts(@NotNull IPossibleConnectionProvider.IPossibleDBConnection pConnection)
+  private void _loadContexts(@NotNull Supplier<Set<String>> pGetContexts)
   {
     fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState.LOADING);
     RequestProcessor.getDefault().execute(() -> {
-      try
-      {
-        pConnection.withJDBCConnection(pCon -> {
-          Set<String> contextNames = getContexts.apply(new UnclosableConnectionWrapper(pCon));
-          if (!contextNames.equals(contexts.getValue()))
-            contexts.onNext(contextNames);
-          fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState.FINISHED);
-          return null;
-        });
-      }
-      catch (IOException pE)
-      {
-        throw new RuntimeException(pE);
-      }
+      Set<String> contextNames = pGetContexts.get();
+      if (!contextNames.equals(contextsLoaded.getValue()))
+        contextsLoaded.onNext(contextNames);
+
+      // fire only if connection is preselected
+      if (getSelectedItem() != null)
+        fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState.FINISHED);
     });
   }
 
   public BehaviorSubject<Set<String>> observeContexts()
   {
-    return contexts;
+    return contextsLoaded;
   }
 
   public void addConnectionStateListener(IConnectionLoaderStateListener pListener)

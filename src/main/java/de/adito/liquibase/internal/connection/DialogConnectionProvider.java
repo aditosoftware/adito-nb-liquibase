@@ -12,11 +12,10 @@ import java.awt.*;
 import java.beans.FeatureDescriptor;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.sql.Connection;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.CancellationException;
-import java.util.function.*;
+import java.util.function.Supplier;
 
 /**
  * ConnectionProvider that asks the user to select a connection
@@ -30,7 +29,7 @@ public class DialogConnectionProvider implements IConnectionProvider
   private WeakReference<IPossibleConnectionProvider.IPossibleDBConnection> selectedConnectionRef;
 
   @Override
-  public <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Function<Connection, Set<String>> pGetContexts,
+  public <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Supplier<Set<String>> pGetContexts,
                                                                 @NotNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex
   {
     Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> result = _findPersistedConnection(pGetContexts, true);
@@ -62,11 +61,13 @@ public class DialogConnectionProvider implements IConnectionProvider
       "ACSD_SelectConnection=Select the database connection for generating connection code."
   })
   @NotNull
-  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _showSelectionDialog(@NotNull Function<Connection, Set<String>> pGetContexts, @NotNull Project pProject) throws CancellationException
+  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _showSelectionDialog(@NotNull Supplier<Set<String>> pGetContexts,
+                                                                                                     @NotNull Project pProject) throws CancellationException
   {
     SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject, _getSelectedAliasDefinitionName(), pGetContexts);
     SelectConnectionDialogPanel panel = new SelectConnectionDialogPanel(model);
     DialogDescriptor desc = new DialogDescriptor(panel, Bundle.MSG_SelectConnection());
+    panel.setValidator(desc::setValid);
 
     Dialog dialog = DialogDisplayer.getDefault().createDialog(desc);
     dialog.getAccessibleContext().setAccessibleDescription(Bundle.ACSD_SelectConnection());
@@ -107,7 +108,7 @@ public class DialogConnectionProvider implements IConnectionProvider
   }
 
   @NotNull
-  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _findPersistedConnection(@NotNull Function<Connection, Set<String>> pGetContexts,
+  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _findPersistedConnection(@NotNull Supplier<Set<String>> pGetContexts,
                                                                                                          @SuppressWarnings("SameParameterValue") boolean pOpenNewConnection)
   {
     IPossibleConnectionProvider.IPossibleDBConnection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();

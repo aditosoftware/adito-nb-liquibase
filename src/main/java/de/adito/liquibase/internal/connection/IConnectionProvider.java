@@ -1,13 +1,11 @@
 package de.adito.liquibase.internal.connection;
 
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider;
-import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider.IPossibleDBConnection.IConnectionFunction;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.Supplier;
 
 /**
  * Provides Database-Connections
@@ -25,7 +23,7 @@ public interface IConnectionProvider
    * @throws Ex          if something inside pFunction failed
    */
   @SuppressWarnings("UnusedReturnValue")
-  <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Function<Connection, Set<String>> pGetContexts,
+  <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Supplier<Set<String>> pGetContexts,
                                                          @NotNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex;
 
   /**

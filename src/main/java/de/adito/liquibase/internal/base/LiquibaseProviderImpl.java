@@ -70,9 +70,9 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
     }
     AtomicReference<Ex> exRef = new AtomicReference<>();
     if (connectionProvider != null)
-      connectionProvider.executeOnCurrentConnection(pCon -> {
+      connectionProvider.executeOnCurrentConnection(() -> {
                                                       if (pChangelogRequired)
-                                                        return _getContexts(pChangeLogProvider, pCon);
+                                                        return _getContexts(pChangeLogProvider);
                                                       return Set.of();
                                                     },
                                                     (pCon, pStrings) -> {
@@ -90,19 +90,16 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
   /**
    * Extracts all Contexts from the Changesets.
    */
-  private Set<String> _getContexts(@Nullable IChangelogProvider pChangelogProvider, @NotNull Connection pConnection)
+  private Set<String> _getContexts(@Nullable IChangelogProvider pChangelogProvider)
   {
     try
     {
-      JdbcConnection con = new JdbcConnection(pConnection);
       File currentChangeLogFile = pChangelogProvider == null ? null : pChangelogProvider.findCurrentChangeLog();
-      Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(con);
-
       if (currentChangeLogFile != null)
       {
         ProjectResourceAccessor resourceAccessor = new ProjectResourceAccessor(pChangelogProvider);
         String changeLogPath = resourceAccessor.getRelativePath(currentChangeLogFile);
-        ADITOLiquibaseImpl instance = new ADITOLiquibaseImpl(changeLogPath, resourceAccessor, database);
+        ADITOLiquibaseImpl instance = new ADITOLiquibaseImpl(changeLogPath, resourceAccessor, (Database) null);
         return instance.getDatabaseChangeLog().getChangeSets().stream()
             .flatMap(pChangeSet -> Stream.concat(pChangeSet.getContexts().getContexts().stream(),
                                                  pChangeSet.getInheritableContexts().stream()

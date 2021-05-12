@@ -13,6 +13,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Panel for a dialog to select a database connection
@@ -139,6 +140,17 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
       contextsPanel.repaint();
       repaint();
     });
+  }
+
+  /**
+   * Sets the validator. The validator is called, if something changed.
+   *
+   * @param pValidator the validator
+   */
+  public void setValidator(@NotNull Consumer<Boolean> pValidator)
+  {
+    pValidator.accept(false);
+    disposable.add(model.observeIsValid().subscribe(pBoolean -> pValidator.accept(pBoolean != null && pBoolean)));
   }
 
   /**
