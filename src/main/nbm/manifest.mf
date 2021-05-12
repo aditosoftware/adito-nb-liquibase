@@ -5,6 +5,12 @@ OpenIDE-Module-Display-Category: ADITO / Database
 OpenIDE-Module-Short-Description: Integrates simple tooling for Liquibase systems
 OpenIDE-Module-Long-Description: Integrates simple tooling for Liquibase systems
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.4.2</p>
+        <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
+        <ul>
+          <li>Project tree does not collapse after file changes.</li>
+          <li>Liquibase "Update": ok button is disabled until contexts are loaded and connection is selected.</li>
+        </ul>
   <p style="font-weight: bold;">v1.4.1</p>
       <p style="margin-left: 10px; font-weight: bold;">BUGFIXES</p>
       <ul>
