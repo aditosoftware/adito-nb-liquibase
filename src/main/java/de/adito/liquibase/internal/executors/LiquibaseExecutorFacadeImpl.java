@@ -67,14 +67,16 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   })
   private void _update(@NotNull Liquibase pLiquibase, @NotNull Contexts pContexts, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException
   {
+    // prefetch information that will be used in notification
+    File changeLog = pChangeLogProvider.hasChangelogsAvailable() ? pChangeLogProvider.findCurrentChangeLog() : null;
+    String aliasName = pChangeLogProvider.findAliasName();
+
     // Execute Update
     pLiquibase.update(pContexts);
 
     // Finished
     INotificationFacade.INSTANCE.notify(Bundle.LBL_UpdateSuccess(), Bundle.LBL_DiffWithDBTables(), false, e -> {
       // Perform Diff on click
-      File changeLog = pChangeLogProvider.hasChangelogsAvailable() ? pChangeLogProvider.findCurrentChangeLog() : null;
-      String aliasName = pChangeLogProvider.findAliasName();
       if (changeLog != null && aliasName != null)
       {
         Project owner = FileOwnerQuery.getOwner(changeLog.toURI());
