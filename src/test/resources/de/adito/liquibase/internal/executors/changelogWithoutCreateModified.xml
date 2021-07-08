@@ -3,12 +3,12 @@
   <changeSet author="testAuthor" id="987">
     <createIndex tableName="TESTTABLE" indexName="INDEXNAME">
       <column name="ID" type="CHAR(36)">
-        <constraints nullable="false" primaryKey="true" primaryKeyName="PRIMARY_KEY_NAME"/>
+        <constraints nullable="false" primaryKey="true" primaryKeyName="PRIMARY_KEY_NAME" />
       </column>
-      <column name="DATE_EDIT" type="TIMESTAMP"/>
-      <column name="DATE_NEW" type="TIMESTAMP"/>
-      <column name="USER_EDIT" type="VARCHAR(63)"/>
-      <column name="USER_NEW" type="VARCHAR(63)"/>
+      <column name="DATE_EDIT" type="TIMESTAMP" />
+      <column name="DATE_NEW" type="TIMESTAMP" />
+      <column name="USER_EDIT" type="VARCHAR(63)" />
+      <column name="USER_NEW" type="VARCHAR(63)" />
     </createIndex>
   </changeSet>
 </databaseChangeLog>
