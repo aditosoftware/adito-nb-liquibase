@@ -1,5 +1,6 @@
 package de.adito.liquibase.internal.executors;
 
+import com.google.common.collect.Lists;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IAliasDiffService;
 import de.adito.liquibase.internal.base.*;
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
@@ -15,10 +16,13 @@ import liquibase.exception.*;
 import liquibase.integration.ant.type.ChangeLogOutputFile;
 import liquibase.structure.DatabaseObject;
 import org.apache.tools.ant.types.resources.FileResource;
+import org.jdom2.*;
+import org.jdom2.filter.ElementFilter;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.*;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.*;
 import org.openide.*;
-import org.openide.filesystems.*;
 import org.openide.util.*;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -26,17 +30,12 @@ import java.io.*;
 import java.sql.Connection;
 import java.util.*;
 import java.util.concurrent.CancellationException;
-import java.util.regex.Pattern;
 
 /**
  * @author w.glanzer, 30.07.2020
  */
 class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
 {
-
-  private static final String _PATTERN_AUTHOR = "author=\".*\\(generated\\)\"";
-  private static final String _PATTERN_ID = "id=\"\\d*-\\d*\"";
-  private static final String _PATTERN_CHANGESET = "<changeSet " + _PATTERN_AUTHOR + " " + _PATTERN_ID + ">";
 
   @Override
   public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
@@ -273,7 +272,8 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       throw new LiquibaseException(pE);
     }
 
-    _modifyChangeset(f, pAuthor);
+    modifyChangeset(f, pAuthor, UUID.randomUUID().toString());
+    NbUtil.open(f);
   }
 
   /**
@@ -287,48 +287,57 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   }
 
   /**
-   * Changes the author and sets an unique UUID of each changeset and opens the file.
+   * Changes the author and sets an unique UUID of each changeset and adds a precondition to each create-Table-Tag.
    *
    * @param pFile   the file, which should be modified
    * @param pAuthor the name of the author
+   * @param pId     the ID, which should be set
    * @throws LiquibaseException when something goes wrong
    */
-  private void _modifyChangeset(@NotNull File pFile, @NotNull String pAuthor) throws LiquibaseException
+  protected void modifyChangeset(@NotNull File pFile, @NotNull String pAuthor, @NotNull String pId) throws LiquibaseException
   {
-    FileObject fo = FileUtil.toFileObject(pFile);
-
     try
     {
-      List<String> lines = new ArrayList<>(fo.asLines());
-      FileWriter writer = new FileWriter(fo.getPath());
-      Object attr = fo.getAttribute(FileObject.DEFAULT_LINE_SEPARATOR_ATTR);
-      String lineSeparator = System.lineSeparator();
-      if (attr instanceof String)
-        lineSeparator = attr.toString();
+      // Read Document
+      SAXBuilder sb = new SAXBuilder();
+      Document doc = sb.build(pFile);
 
-      Pattern pattern = Pattern.compile(_PATTERN_CHANGESET);
-      for (int i = 0; i < lines.size(); i++)
+      // Replace author and id
+      ArrayList<Element> changeSets = Lists.newArrayList((Iterable<? extends Element>) doc.getDescendants(new ElementFilter("changeSet")));
+      for (Element changeSet : changeSets)
       {
-        String s = lines.get(i);
-        if (pattern.matcher(s.trim()).matches())
-        {
-          // set own author and own id
-          s = s.replaceFirst(_PATTERN_AUTHOR, "author=\"" + pAuthor + "\"")
-              .replaceFirst(_PATTERN_ID, "id=\"" + UUID.randomUUID().toString() + "\"");
-          //noinspection SuspiciousListRemoveInLoop
-          lines.remove(i);
-          lines.add(i, s);
-        }
+        changeSet.setAttribute("author", pAuthor);
+        changeSet.setAttribute("id", pId);
       }
 
-      writer.append(String.join(lineSeparator, lines));
-      writer.flush();
+      // Add PreCondition to every createTable-Tag
+      // PreCondition should check, if table already exists
+      ArrayList<Element> createTables = Lists.newArrayList((Iterable<? extends Element>) doc.getDescendants(new ElementFilter("createTable")));
+      for (Element createTable : createTables)
+      {
+        Element changeSet = createTable.getParentElement();
+        Element preConditions = new Element("preConditions", changeSet.getNamespace());
+        changeSet.addContent(0, preConditions);
+        preConditions.setAttribute("onFail", "MARK_RAN");
+
+        Element not = new Element("not", preConditions.getNamespace());
+        preConditions.addContent(not);
+
+        Element tableExists = new Element("tableExists", not.getNamespace());
+        not.addContent(tableExists);
+        tableExists.setAttribute("tableName", createTable.getAttributeValue("tableName"));
+      }
+
+      // Write it back to the file
+      OutputStream writer = new FileOutputStream(pFile);
+      XMLOutputter out = new XMLOutputter();
+      Format format = Format.getPrettyFormat();
+      out.setFormat(format);
+      out.output(doc, writer);
     }
-    catch (IOException pE)
+    catch (IOException | JDOMException pE)
     {
       throw new LiquibaseException(pE);
     }
-
-    NbUtil.open(pFile);
   }
 }

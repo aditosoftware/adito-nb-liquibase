@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+  <changeSet author="testAuthor" id="987">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="TESTTABLE"/>
+      </not>
+    </preConditions>
+    <createTable tableName="TESTTABLE">
+      <column name="ID" type="CHAR(36)">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="PRIMARY_KEY_NAME"/>
+      </column>
+      <column name="DATE_EDIT" type="TIMESTAMP"/>
+      <column name="DATE_NEW" type="TIMESTAMP"/>
+      <column name="USER_EDIT" type="VARCHAR(63)"/>
+      <column name="USER_NEW" type="VARCHAR(63)"/>
+    </createTable>
+  </changeSet>
+</databaseChangeLog>
