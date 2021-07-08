@@ -53,7 +53,7 @@ class LiquibaseExecutorFacadeImplTest
       String expected = IOUtils.toString(LiquibaseExecutorFacadeImplTest.class.getResourceAsStream(pPathModified),
                                          StandardCharsets.UTF_8);
       String actually = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-      assertEquals(expected, actually);
+      assertEquals(expected.replace("\r", ""), actually.replace("\r", ""));
     }
   }
 }
