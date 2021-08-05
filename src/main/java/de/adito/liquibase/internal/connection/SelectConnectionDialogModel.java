@@ -25,14 +25,16 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   private final Set<_Item> availableData = new HashSet<>();
   private final List<_Item> shownData = new ArrayList<>();
   private final BehaviorSubject<Boolean> showAllConnections = BehaviorSubject.create();
-  private final BehaviorSubject<Set<String>> contextsLoaded = BehaviorSubject.create();
+  private final BehaviorSubject<Optional<Set<String>>> contextsLoaded = BehaviorSubject.create();
   private final BehaviorSubject<Optional<_Item>> connections = BehaviorSubject.create();
-  private final BehaviorSubject<Pair<String, Boolean>> selectedContextsChanged = BehaviorSubject.create(); // name of context and disabled/enabled
+  private final BehaviorSubject<Optional<Pair<String, Boolean>>> selectedContextsChanged = BehaviorSubject.create(); // name of context and disabled/enabled
   private final Set<String> selectedContexts = new HashSet<>();
   private final List<IConnectionLoaderStateListener> connectionStateListeners = new ArrayList<>();
 
   SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName, @NotNull Supplier<Set<String>> pGetContexts)
   {
+    contextsLoaded.onNext(Optional.empty());
+    selectedContextsChanged.onNext(Optional.empty());
     SwingUtilities.invokeLater(() -> {
       _loadAsync(pProject, pPreselectedSourceName);
 
@@ -99,7 +101,11 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   @NotNull
   public Observable<Boolean> observeIsValid()
   {
-    return Observable.combineLatest(selectedContextsChanged, connections, (pContexts, pItem) -> !selectedContexts.isEmpty() && pItem.isPresent());
+    return Observable.combineLatest(selectedContextsChanged, connections, contextsLoaded, (pContexts, pItem, pContextsLoaded) -> {
+      System.out.println("Contexts loaded: " + pContextsLoaded);
+      System.out.println(pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent());
+     return pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent();
+    });
   }
 
   /**
@@ -125,7 +131,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
         else
           loadingState = IConnectionLoaderStateListener.ELoadingState.FINISHED_FOUND_SELECTED;
       }
-      if (contextsLoaded.getValue() != null)
+      if (contextsLoaded.getValue().isPresent())
         fireConnectionStateChanged(loadingState);
     }).start();
   }
@@ -168,7 +174,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
       selectedContexts.add(pContextName);
     else
       selectedContexts.remove(pContextName);
-    selectedContextsChanged.onNext(Pair.of(pContextName, pEnabled));
+    selectedContextsChanged.onNext(Optional.of(Pair.of(pContextName, pEnabled)));
   }
 
   /**
@@ -178,7 +184,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   public Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> getSelectedConnectionAndContexts()
   {
     List<String> selected;
-    if (contextsLoaded.getValue() == null)
+    if (!contextsLoaded.getValue().isPresent())
       selected = new ArrayList<>();
     else
       selected = new ArrayList<>(selectedContexts);
@@ -208,8 +214,8 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState.LOADING);
     RequestProcessor.getDefault().execute(() -> {
       Set<String> contextNames = pGetContexts.get();
-      if (!contextNames.equals(contextsLoaded.getValue()))
-        contextsLoaded.onNext(contextNames);
+      if (contextsLoaded.getValue().map(pContextsLoaded -> !contextNames.equals(pContextsLoaded)).orElse(true))
+        contextsLoaded.onNext(Optional.of(contextNames));
 
       // fire only if connection is preselected
       if (getSelectedItem() != null)
@@ -217,7 +223,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     });
   }
 
-  public BehaviorSubject<Set<String>> observeContexts()
+  public BehaviorSubject<Optional<Set<String>>> observeContexts()
   {
     return contextsLoaded;
   }

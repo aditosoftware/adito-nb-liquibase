@@ -104,7 +104,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
 
   private JComponent _createContextsPanel()
   {
-    disposable.add(model.observeContexts().subscribe(this::_showContexts));
+    disposable.add(model.observeContexts().subscribe(contexts -> contexts.ifPresent(this::_showContexts)));
     contextsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
     contextsPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
     return contextsPanel;
