@@ -101,11 +101,8 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   @NotNull
   public Observable<Boolean> observeIsValid()
   {
-    return Observable.combineLatest(selectedContextsChanged, connections, contextsLoaded, (pContexts, pItem, pContextsLoaded) -> {
-      System.out.println("Contexts loaded: " + pContextsLoaded);
-      System.out.println(pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent());
-     return pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent();
-    });
+    return Observable.combineLatest(selectedContextsChanged, connections, contextsLoaded, (pContexts, pItem, pContextsLoaded) ->
+        pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent());
   }
 
   /**
@@ -330,6 +327,13 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
             // should not happen
             throw new IOException("Connection could not be read. Maybe it is not connected?");
           return pFunction.apply(jdbcCon);
+        }
+
+        @NotNull
+        @Override
+        public List<ITableMetaInfo> getTableMetaInfos()
+        {
+          return List.of(); // At this point there are no meta infomation availabe
         }
       };
     }
