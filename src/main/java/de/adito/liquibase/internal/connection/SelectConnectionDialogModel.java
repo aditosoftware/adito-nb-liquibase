@@ -101,11 +101,8 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   @NotNull
   public Observable<Boolean> observeIsValid()
   {
-    return Observable.combineLatest(selectedContextsChanged, connections, contextsLoaded, (pContexts, pItem, pContextsLoaded) -> {
-      System.out.println("Contexts loaded: " + pContextsLoaded);
-      System.out.println(pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent());
-     return pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent();
-    });
+    return Observable.combineLatest(selectedContextsChanged, connections, contextsLoaded, (pContexts, pItem, pContextsLoaded) ->
+        pContextsLoaded.isPresent() && (pContextsLoaded.get().isEmpty() || !selectedContexts.isEmpty()) && pItem.isPresent());
   }
 
   /**
