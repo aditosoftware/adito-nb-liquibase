@@ -176,7 +176,6 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   private JLabel _createMessageLabel()
   {
     messageLabel = new JLabel();
-    messageLabel.setFont(messageLabel.getFont().deriveFont(Font.BOLD));
     return messageLabel;
   }
 
@@ -241,9 +240,17 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
           message += Bundle.AuditActive();
 
         if (offlineActive)
+        {
+          if (!message.isEmpty())
+            message += "<br/>";
           message += Bundle.OfflineActive();
 
-        messageLabel.setText(message);
+          messageLabel.setForeground(Color.RED);
+        }
+        else
+          messageLabel.setForeground(new JLabel().getForeground()); // reset to default
+
+        messageLabel.setText("<html>" + message + "</html>");
         if (message.equals(""))
           messageLabel.setIcon(null);
         else
