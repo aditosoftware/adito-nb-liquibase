@@ -12,7 +12,8 @@ import org.openide.windows.WindowManager;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.Set;
+import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -175,7 +176,6 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   private JLabel _createMessageLabel()
   {
     messageLabel = new JLabel();
-    messageLabel.setFont(messageLabel.getFont().deriveFont(Font.BOLD));
     return messageLabel;
   }
 
@@ -207,17 +207,16 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
    * Updates the message label to the current model selection
    */
   @NbBundle.Messages({
-      "PotentiallyRemote=The connection potentially points to an external database!",
-      "Remote=The connection points to an external database!"
+      "PotentiallyRemote=The connection potentially points to an external database! ",
+      "Remote=The connection points to an external database! ",
+      "AuditActive=Audit is active, the audit layer is ignored by liquibase! ",
+      "OfflineActive=Offline sync is active, manual adjusting in ASYS_AUDIT necessary! "
   })
   private void _updateMessageLabel()
   {
     SwingUtilities.invokeLater(() -> {
-      // clear
-      messageLabel.setText("");
-      messageLabel.setIcon(null);
-
       // new message
+      String message = "";
       IPossibleConnectionProvider.IPossibleDBConnection connection = model.getSelectedConnectionAndContexts().first();
       IJDBCURLTester tester = Lookup.getDefault().lookup(IJDBCURLTester.class);
       if (connection != null && tester != null)
@@ -226,14 +225,36 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
         switch (result)
         {
           case POTENTIALLY_REMOTE:
-            messageLabel.setIcon(warningIcon);
-            messageLabel.setText(Bundle.PotentiallyRemote());
+            message = Bundle.PotentiallyRemote();
             break;
           case REMOTE:
-            messageLabel.setIcon(warningIcon);
-            messageLabel.setText(Bundle.Remote());
+            message = Bundle.Remote();
             break;
         }
+
+        List<IPossibleConnectionProvider.IPossibleDBConnection.ITableMetaInfo> metaInfos = connection.getTableMetaInfos();
+        boolean auditActive = metaInfos.stream().anyMatch(IPossibleConnectionProvider.IPossibleDBConnection.ITableMetaInfo::isAuditActive);
+        boolean offlineActive = metaInfos.stream().anyMatch(IPossibleConnectionProvider.IPossibleDBConnection.ITableMetaInfo::isOfflineActive);
+
+        if (auditActive)
+          message += Bundle.AuditActive();
+
+        if (offlineActive)
+        {
+          if (!message.isEmpty())
+            message += "<br/>";
+          message += Bundle.OfflineActive();
+
+          messageLabel.setForeground(Color.RED);
+        }
+        else
+          messageLabel.setForeground(new JLabel().getForeground()); // reset to default
+
+        messageLabel.setText("<html>" + message + "</html>");
+        if (message.equals(""))
+          messageLabel.setIcon(null);
+        else
+          messageLabel.setIcon(warningIcon);
       }
     });
   }

@@ -328,6 +328,13 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
             throw new IOException("Connection could not be read. Maybe it is not connected?");
           return pFunction.apply(jdbcCon);
         }
+
+        @NotNull
+        @Override
+        public List<ITableMetaInfo> getTableMetaInfos()
+        {
+          return List.of(); // At this point there are no meta infomation availabe
+        }
       };
     }
 
