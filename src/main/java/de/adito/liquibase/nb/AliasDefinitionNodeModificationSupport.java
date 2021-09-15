@@ -56,8 +56,6 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
   private static class _AliasDefinitionNode extends FilterNode implements Disposable
   {
     private final CompositeDisposable disposable;
-    private Boolean changeOriginal = null;
-    private _FolderNode node = null;
     private List<String[]> expanded = null;
 
     private _AliasDefinitionNode(@NotNull Node pAliasDefNode)
@@ -74,40 +72,22 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
       disposable.add(_watchLiquibaseFolder(pAliasDefNode).subscribe(pFileObject -> {
         if (pFileObject.isPresent())
         {
-          // change original only once
-          if (Boolean.TRUE.equals(changeOriginal))
+          Node foNode = _getNode(pFileObject.get());
+          _FolderNode node = new _FolderNode(foNode != null ? foNode : new AbstractNode(Children.LEAF));
+          changeOriginal(node, true);
+          changeOriginal(pAliasDefNode, false);
+
+          if (foNode != null)
+            node.changeOriginal(foNode);
+
+          if (expanded != null)
           {
-            Node foNode = _getNode(pFileObject.get());
-            // Create node only once
-            if (node == null)
-            {
-              node = new _FolderNode(foNode != null ? foNode : new AbstractNode(Children.LEAF));
-              changeOriginal(node, true);
-              changeOriginal(pAliasDefNode, false);
-            }
-            else
-            {
-              if (foNode != null)
-                node.changeOriginal(foNode);
-              if (expanded != null)
-              {
-                ProjectTabUtil.setExpandedNodes(expanded);
-                expanded = null;
-              }
-            }
-            changeOriginal = false;
+            ProjectTabUtil.setExpandedNodes(expanded);
+            expanded = null;
           }
         }
-        // if fileObject isn't present, on the next event the original must be changed
-        else if (Boolean.FALSE.equals(changeOriginal))
-          changeOriginal = true;
-
-        // Change only once the original of the alias node
-        if (changeOriginal == null)
-        {
-          changeOriginal(pAliasDefNode, false);
-          changeOriginal = true;
-        }
+        else
+          changeOriginal(pAliasDefNode, true);
       }));
 
       // Liquibase-Folder-Mover
