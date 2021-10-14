@@ -23,6 +23,11 @@ import java.util.function.Consumer;
  */
 class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnectionLoaderStateListener
 {
+  private static final Color _ERROR_COLOR = UIManager.getColor("nb.errorForeground") == null ? Color.RED
+      : UIManager.getColor("nb.errorForeground");
+  private static final Color _WARNING_COLOR = UIManager.getColor("nb.warningForeground") == null ? Color.YELLOW
+      : UIManager.getColor("nb.warningForeground");
+
   private final SelectConnectionDialogModel model;
   private final CompositeDisposable disposable = new CompositeDisposable();
   private JPanel contextsPanel;
@@ -63,9 +68,9 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
     };
 
     setLayout(new TableLayout(cols, rows));
+    add(_createMessageLabel(), "1,5");
     add(_createComboBox(), "1,1");
     add(_initLoadingIconLabel(), "3,1");
-    add(_createMessageLabel(), "1,5");
     add(_createCheckBox(), "1,3");
     add(_createContextLabel(), "1,7");
     add(_createContextsPanel(), "1,9");
@@ -215,6 +220,8 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   private void _updateMessageLabel()
   {
     SwingUtilities.invokeLater(() -> {
+      messageLabel.setForeground(new JLabel().getForeground()); // reset to default
+
       // new message
       String message = "";
       IPossibleConnectionProvider.IPossibleDBConnection connection = model.getSelectedConnectionAndContexts().first();
@@ -237,18 +244,18 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
         boolean offlineActive = metaInfos.stream().anyMatch(IPossibleConnectionProvider.IPossibleDBConnection.ITableMetaInfo::isOfflineActive);
 
         if (auditActive)
+        {
           message += Bundle.AuditActive();
+          messageLabel.setForeground(_WARNING_COLOR);
+        }
 
         if (offlineActive)
         {
           if (!message.isEmpty())
             message += "<br/>";
           message += Bundle.OfflineActive();
-
-          messageLabel.setForeground(Color.RED);
+          messageLabel.setForeground(_ERROR_COLOR);
         }
-        else
-          messageLabel.setForeground(new JLabel().getForeground()); // reset to default
 
         messageLabel.setText("<html>" + message + "</html>");
         if (message.equals(""))
