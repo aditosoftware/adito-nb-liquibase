@@ -137,7 +137,11 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
               .map(pAlias -> {
                 Project project = FileOwnerQuery.getOwner(pAlias);
                 if (project != null)
-                  return LiquibaseFolderService.getInstance(project).observeLiquibaseFolderForAlias(pAlias.getName());
+                  return LiquibaseFolderService.observe(project)
+                      .switchMap(pServiceOpt -> pServiceOpt
+                          .map(pService -> pService.observeLiquibaseFolderForAlias(pAlias.getName()))
+                          .orElseGet(() -> Observable.just(Optional.empty())));
+
                 return null;
               })
               .orElseGet(() -> Observable.just(Optional.empty())))

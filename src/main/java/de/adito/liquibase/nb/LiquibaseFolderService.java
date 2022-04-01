@@ -1,6 +1,6 @@
 package de.adito.liquibase.nb;
 
-import de.adito.observables.netbeans.FileObservable;
+import de.adito.observables.netbeans.*;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
@@ -24,6 +24,19 @@ public class LiquibaseFolderService implements Disposable
 
   private static final String _LIQUIBASE_FOLDER = ".liquibase";
   private Project project;
+
+  /**
+   * Watches the instance for a specific project
+   *
+   * @param pProject Project
+   * @return the observable to watch for instances
+   */
+  @NotNull
+  public static Observable<Optional<LiquibaseFolderService>> observe(@NotNull Project pProject)
+  {
+    return LookupResultObservable.create(pProject.getLookup(), LiquibaseFolderService.class)
+        .map(pServices -> pServices.stream().findFirst());
+  }
 
   /**
    * Returns the instance for a specific project

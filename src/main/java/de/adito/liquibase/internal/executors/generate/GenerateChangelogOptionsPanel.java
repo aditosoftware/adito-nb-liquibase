@@ -2,6 +2,7 @@ package de.adito.liquibase.internal.executors.generate;
 
 import de.adito.liquibase.nb.LiquibaseFolderService;
 import info.clearthought.layout.TableLayout;
+import io.reactivex.rxjava3.core.Observable;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.*;
@@ -105,7 +106,10 @@ public class GenerateChangelogOptionsPanel extends JPanel
 
     Project project = TopComponent.getRegistry().getActivated().getLookup().lookup(Project.class);
     if (project != null)
-      LiquibaseFolderService.getInstance(project).observeLiquibaseFolder()
+      LiquibaseFolderService.observe(project)
+          .switchMap(pServiceOpt -> pServiceOpt
+              .map(LiquibaseFolderService::observeLiquibaseFolder)
+              .orElseGet(() -> Observable.just(Optional.empty())))
           .blockingFirst()
           .ifPresent(pFileObject -> {
             String path = FileUtil.toFile(pFileObject).getPath();

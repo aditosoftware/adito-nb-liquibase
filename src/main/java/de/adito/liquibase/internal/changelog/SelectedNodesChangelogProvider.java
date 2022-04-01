@@ -1,6 +1,7 @@
 package de.adito.liquibase.internal.changelog;
 
 import de.adito.liquibase.nb.LiquibaseFolderService;
+import io.reactivex.rxjava3.core.Observable;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.*;
@@ -61,7 +62,10 @@ public class SelectedNodesChangelogProvider implements IChangelogProvider
 
     // Read the liquibase folder from a project, extract all available aliases
     // and find the correct one by searching the selected changelog
-    return LiquibaseFolderService.getInstance(project).observeLiquibaseFolder()
+    return LiquibaseFolderService.observe(project)
+        .switchMap(pServiceOpt -> pServiceOpt
+            .map(LiquibaseFolderService::observeLiquibaseFolder)
+            .orElseGet(() -> Observable.just(Optional.empty())))
         .blockingFirst(Optional.empty())
         .map(FileUtil::toFile)
         .flatMap(pFile -> {
