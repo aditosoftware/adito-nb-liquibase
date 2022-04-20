@@ -62,7 +62,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
 
   @NbBundle.Messages({
       "LBL_UpdateSuccess=Update Succesfull",
-      "LBL_DiffWithDBTables=Diff with DB tables"
+      "LBL_DiffWithDBTables=Diff AliasDefinition <> Database Tables"
   })
   private void _update(@NotNull Liquibase pLiquibase, @NotNull Contexts pContexts, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException
   {
