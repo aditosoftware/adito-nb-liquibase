@@ -156,6 +156,13 @@ public class ADITOLiquibaseImpl extends AbstractADITOLiquibase
     });
   }
 
+  @Override
+  public void validate() throws LiquibaseException
+  {
+    // validation must be executed in this scope because this resource accessor should be used
+    runInScope(ADITOLiquibaseImpl.super::validate);
+  }
+
   private void runInScope(Scope.ScopedRunner scopedRunner) throws LiquibaseException
   {
     Map<String, Object> scopeObjects = new HashMap<>();
