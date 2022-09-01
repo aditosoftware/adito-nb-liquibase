@@ -143,7 +143,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       AbstractADITOLiquibase instance;
       if (pChangelogProvider == null || currentChangeLogFile == null)
       {
-        ResourceAccessor resourceAccessor = new FileSystemResourceAccessor(new File(".")); // what should we use here?!
+        ResourceAccessor resourceAccessor = new ClassLoaderFileSystemResourceAccessor(new File(".")); // what should we use here?!
         instance = new ADITOLiquibaseImpl(new DatabaseChangeLog(null), resourceAccessor, database);
       }
       else

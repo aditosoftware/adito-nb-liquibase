@@ -14,7 +14,7 @@ import java.io.*;
  *
  * @author w.glanzer, 30.07.2020
  */
-class ProjectResourceAccessor extends FileSystemResourceAccessor
+class ProjectResourceAccessor extends ClassLoaderFileSystemResourceAccessor
 {
 
   public ProjectResourceAccessor(@NotNull IChangelogProvider pChangelogProvider)
