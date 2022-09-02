@@ -5,6 +5,12 @@ OpenIDE-Module-Display-Category: ADITO / Database
 OpenIDE-Module-Short-Description: Integrates simple tooling for Liquibase systems
 OpenIDE-Module-Long-Description: Integrates simple tooling for Liquibase systems
   <p style="font-weight: bold;">Changelog</p>
+  <p style="font-weight: bold;">v1.4.10</p>
+  <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
+     <ul>
+        <li>Improved performance during xml parsing</li>
+        <li>Improved timeout handling, so that the drop all confirmation dialog does not affect it</li>
+     </ul>
   <p style="font-weight: bold;">v1.4.9</p>
   <p style="margin-left: 10px; font-weight: bold;">MINOR</p>
      <ul>
