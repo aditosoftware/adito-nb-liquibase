@@ -40,7 +40,20 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, (pLiquibase, pContexts) -> _dropAll(pLiquibase));
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, new ILiquibaseProvider.ILiquibaseConsumer<LiquibaseException>()
+    {
+      @Override
+      public void before()
+      {
+        _dropAllConfirmation();
+      }
+
+      @Override
+      public void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws LiquibaseException
+      {
+        _dropAll(pLiquibase);
+      }
+    });
   }
 
   @Override
@@ -53,9 +66,20 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   @Override
   public void executeDropAllAndUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
-    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (liquibase, contexts) -> {
-      _dropAll(liquibase);
-      _update(liquibase, contexts, pChangeLogProvider);
+    ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, new ILiquibaseProvider.ILiquibaseConsumer<LiquibaseException>()
+    {
+      @Override
+      public void before()
+      {
+        _dropAllConfirmation();
+      }
+
+      @Override
+      public void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws LiquibaseException
+      {
+        _dropAll(pLiquibase);
+        _update(pLiquibase, pContexts, pChangeLogProvider);
+      }
     });
 
   }
@@ -89,28 +113,30 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   }
 
   @NbBundle.Messages({
-      "LBL_DropAllConfirmation=Do you really want to drop all tables from the selected database?",
-      "LBL_DropAllConfirmation_Title=Drop All Confirmation",
-      "BTN_DropAllConfirmation=Drop All",
       "LBL_DropSuccess_Title=Drop Success",
       "LBL_DropSuccess_Message=Dropped all data from database"
   })
   private void _dropAll(@NotNull Liquibase pLiquibase) throws DatabaseException
   {
-    // Then Display Warning
+    // Execute Action
+    pLiquibase.dropAll();
+
+    // Finished
+    INotificationFacade.INSTANCE.notify(Bundle.LBL_DropSuccess_Title(), Bundle.LBL_DropSuccess_Message(), true, null);
+  }
+
+  @NbBundle.Messages({
+      "LBL_DropAllConfirmation=Do you really want to drop all tables from the selected database?",
+      "LBL_DropAllConfirmation_Title=Drop All Confirmation",
+      "BTN_DropAllConfirmation=Drop All"
+  })
+  private void _dropAllConfirmation()
+  {
     NotifyDescriptor descr = new NotifyDescriptor(Bundle.LBL_DropAllConfirmation(), Bundle.LBL_DropAllConfirmation_Title(),
                                                   NotifyDescriptor.OK_CANCEL_OPTION, NotifyDescriptor.QUESTION_MESSAGE,
                                                   new Object[]{Bundle.BTN_DropAllConfirmation(), NotifyDescriptor.CANCEL_OPTION},
                                                   NotifyDescriptor.CANCEL_OPTION);
-    if (DialogDisplayer.getDefault().notify(descr) == Bundle.BTN_DropAllConfirmation())
-    {
-      // Execute Action
-      pLiquibase.dropAll();
-
-      // Finished
-      INotificationFacade.INSTANCE.notify(Bundle.LBL_DropSuccess_Title(), Bundle.LBL_DropSuccess_Message(), true, null);
-    }
-    else
+    if (DialogDisplayer.getDefault().notify(descr) != Bundle.BTN_DropAllConfirmation())
       throw new CancellationException();
   }
 

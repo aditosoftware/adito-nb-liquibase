@@ -33,6 +33,13 @@ public interface IConnectionProvider
 
   interface IConnectionContextFunction<T, Ex extends Throwable>
   {
+    /**
+     * Functions that gets executed before the connection is opened and the liquibase instance created
+     */
+    default void before()
+    {
+    }
+
     T apply(@NotNull Connection pConnection, @NotNull List<String> pContexts) throws Ex;
   }
 
