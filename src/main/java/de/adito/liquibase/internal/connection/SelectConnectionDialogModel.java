@@ -4,13 +4,10 @@ import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import org.jetbrains.annotations.*;
-import org.netbeans.api.db.explorer.*;
 import org.netbeans.api.project.Project;
 import org.openide.util.*;
 
 import javax.swing.*;
-import java.io.IOException;
-import java.sql.Connection;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -37,10 +34,6 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     selectedContextsChanged.onNext(Optional.empty());
     SwingUtilities.invokeLater(() -> {
       _loadAsync(pProject, pPreselectedSourceName);
-
-      // Add all unnamed connections
-      for (DatabaseConnection c : ConnectionManager.getDefault().getConnections())
-        availableData.add(new _Item(c));
 
       // init connections
       setShowAllConnections(true);
@@ -298,44 +291,6 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     _Item(@NotNull IPossibleConnectionProvider.IPossibleDBConnection pConnection)
     {
       connection = pConnection;
-    }
-
-    _Item(@NotNull DatabaseConnection pConnection)
-    {
-      connection = new IPossibleConnectionProvider.IPossibleDBConnection()
-      {
-        @NotNull
-        @Override
-        public String getURL()
-        {
-          return pConnection.getDatabaseURL();
-        }
-
-        @Nullable
-        @Override
-        public String getSourceName()
-        {
-          return null;
-        }
-
-        @Override
-        public <T, Ex extends Throwable> T withJDBCConnection(@NotNull IConnectionFunction<T, Ex> pFunction) throws IOException, Ex
-        {
-          ConnectionManager.getDefault().showConnectionDialog(pConnection);
-          Connection jdbcCon = pConnection.getJDBCConnection();
-          if (jdbcCon == null)
-            // should not happen
-            throw new IOException("Connection could not be read. Maybe it is not connected?");
-          return pFunction.apply(jdbcCon);
-        }
-
-        @NotNull
-        @Override
-        public List<ITableMetaInfo> getTableMetaInfos()
-        {
-          return List.of(); // At this point there are no meta infomation availabe
-        }
-      };
     }
 
     @Nullable
