@@ -56,6 +56,13 @@ public interface ILiquibaseProvider
    */
   interface ILiquibaseConsumer<Ex extends Throwable>
   {
+    /**
+     * Functions that gets executed before the connection is opened and the liquibase instance created
+     */
+    default void before()
+    {
+    }
+
     void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws Ex;
   }
 

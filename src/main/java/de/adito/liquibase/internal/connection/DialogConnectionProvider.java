@@ -37,6 +37,8 @@ public class DialogConnectionProvider implements IConnectionProvider
     if (con == null)
       throw new IOException("Failed to get current connection");
 
+    pFunction.before();
+
     // Execute something
     return con.withJDBCConnection(pCon -> pFunction.apply(new UnclosableConnectionWrapper(pCon), result.second()));
   }

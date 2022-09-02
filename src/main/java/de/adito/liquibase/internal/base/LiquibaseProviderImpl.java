@@ -75,10 +75,22 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
                                                         return _getContexts(pChangeLogProvider);
                                                       return Set.of();
                                                     },
-                                                    (pCon, pStrings) -> {
-                                                      _executeOn(pChangeLogProvider, pExecutor, pCon, pStrings, exRef);
-                                                      return null;
-                                                    });
+                                                    new IConnectionProvider.IConnectionContextFunction<Object, LiquibaseException>()
+                                                    {
+                                                      @Override
+                                                      public void before()
+                                                      {
+                                                        pExecutor.before();
+                                                      }
+
+                                                      @Override
+                                                      public Object apply(@NotNull Connection pCon, @NotNull List<String> pStrings) throws LiquibaseException
+                                                      {
+                                                        _executeOn(pChangeLogProvider, pExecutor, pCon, pStrings, exRef);
+                                                        return null;
+                                                      }
+                                                    }
+      );
     else
       _executeOn(pChangeLogProvider, pExecutor, connection, List.of(), exRef);
 
