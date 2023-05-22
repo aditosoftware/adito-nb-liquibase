@@ -8,5 +8,6 @@
 !/.idea/codeStyleSettings.xml
 !/.idea/projectCodeStyle.xml
 !/.idea/vcs.xml
+!/.idea/misc.xml
 target/
 keystore
