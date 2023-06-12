@@ -9,6 +9,7 @@ import liquibase.database.*;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.*;
 import liquibase.resource.*;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.progress.*;
 import org.openide.*;
@@ -35,19 +36,19 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
   private IConnectionProvider connectionProvider;
   private Connection connection;
 
-  LiquibaseProviderImpl(@NotNull IConnectionProvider pConnectionProvider)
+  LiquibaseProviderImpl(@NonNull IConnectionProvider pConnectionProvider)
   {
     connectionProvider = pConnectionProvider;
   }
 
-  LiquibaseProviderImpl(@NotNull Connection pConnection)
+  LiquibaseProviderImpl(@NonNull Connection pConnection)
   {
     connection = pConnection;
   }
 
   @NbBundle.Messages("LBL_ActionProgress=Executing Liquibase Action...")
   @Override
-  public <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor)
+  public <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangelogProvider, @NonNull ILiquibaseConsumer<Ex> pExecutor)
       throws Ex, LiquibaseException, IOException
   {
     executeOn(false, pChangelogProvider, pExecutor);
@@ -58,7 +59,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       "LBL_Message_ChangelogRequired=The changelog must end with '.xml'"
   })
   @Override
-  public <Ex extends Exception> void executeOn(boolean pChangelogRequired, @Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException
+  public <Ex extends Exception> void executeOn(boolean pChangelogRequired, @Nullable IChangelogProvider pChangeLogProvider, @NonNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException
   {
     if (pChangelogRequired)
     {
@@ -84,7 +85,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
                                                       }
 
                                                       @Override
-                                                      public Object apply(@NotNull Connection pCon, @NotNull List<String> pStrings) throws LiquibaseException
+                                                      public Object apply(@NonNull Connection pCon, @NonNull List<String> pStrings) throws LiquibaseException
                                                       {
                                                         _executeOn(pChangeLogProvider, pExecutor, pCon, pStrings, exRef);
                                                         return null;
@@ -136,8 +137,8 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
    * @param pConnection        Execute something on the given connection
    * @param pConsumerExRef     Contains the exception of the given consumer, if any happened
    */
-  private <Ex extends Exception> void _executeOn(@Nullable IChangelogProvider pChangelogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor,
-                                                 @NotNull Connection pConnection, List<String> pContexts, @NotNull AtomicReference<Ex> pConsumerExRef)
+  private <Ex extends Exception> void _executeOn(@Nullable IChangelogProvider pChangelogProvider, @NonNull ILiquibaseConsumer<Ex> pExecutor,
+                                                 @NonNull Connection pConnection, List<String> pContexts, @NonNull AtomicReference<Ex> pConsumerExRef)
       throws LiquibaseException
   {
     JdbcConnection con = new JdbcConnection(pConnection);
@@ -202,7 +203,7 @@ class LiquibaseProviderImpl implements ILiquibaseProvider
       "LBL_ContinueValidation=Clear CheckSums before Validation?",
       "TITLE_VALIDATION_FAIL=Liquibase validation failed"
   })
-  private void _validate(@NotNull Liquibase pLiquibase, boolean pSkipable) throws LiquibaseException
+  private void _validate(@NonNull Liquibase pLiquibase, boolean pSkipable) throws LiquibaseException
   {
     try
     {

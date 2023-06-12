@@ -4,6 +4,7 @@ import de.adito.observables.netbeans.*;
 import de.adito.util.reactive.cache.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
+import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
@@ -31,8 +32,8 @@ public class LiquibaseFolderService implements Disposable
    * @param pProject Project
    * @return the observable to watch for instances
    */
-  @NotNull
-  public static Observable<Optional<LiquibaseFolderService>> observe(@NotNull Project pProject)
+  @NonNull
+  public static Observable<Optional<LiquibaseFolderService>> observe(@NonNull Project pProject)
   {
     return LookupResultObservable.create(pProject.getLookup(), LiquibaseFolderService.class)
         .map(pServices -> pServices.stream().findFirst());
@@ -44,8 +45,8 @@ public class LiquibaseFolderService implements Disposable
    * @param pProject Project
    * @return the instance
    */
-  @NotNull
-  public static LiquibaseFolderService getInstance(@NotNull Project pProject)
+  @NonNull
+  public static LiquibaseFolderService getInstance(@NonNull Project pProject)
   {
     LiquibaseFolderService service = pProject.getLookup().lookup(LiquibaseFolderService.class);
     if (service == null)
@@ -63,7 +64,7 @@ public class LiquibaseFolderService implements Disposable
   }
 
   @SuppressWarnings("unused") // ServiceProvider with given Project
-  public LiquibaseFolderService(@NotNull Project pProject)
+  public LiquibaseFolderService(@NonNull Project pProject)
   {
     project = pProject;
     disposable.add(new ObservableCacheDisposable(cache));
@@ -87,7 +88,7 @@ public class LiquibaseFolderService implements Disposable
    *
    * @return Observable with the folder as content
    */
-  @NotNull
+  @NonNull
   public Observable<Optional<FileObject>> observeLiquibaseFolder()
   {
     return cache.calculate("liquibaseFolder", () -> FileObservable.create(_getLiquibaseFolderFile())
@@ -100,8 +101,8 @@ public class LiquibaseFolderService implements Disposable
    * @param pAliasName Name of the alias to be tracked
    * @return Observable with the folder as content. Triggers on Rename/Move etc.
    */
-  @NotNull
-  public Observable<Optional<FileObject>> observeLiquibaseFolderForAlias(@NotNull String pAliasName)
+  @NonNull
+  public Observable<Optional<FileObject>> observeLiquibaseFolderForAlias(@NonNull String pAliasName)
   {
     return cache.calculate("liquibaseFolderForAlias_" + pAliasName, () -> FileObservable.create(_getLiquibaseFolderFileForAlias(pAliasName))
         .map(pFileOpt -> pFileOpt.map(FileUtil::toFileObject)));
@@ -113,8 +114,8 @@ public class LiquibaseFolderService implements Disposable
    * @param pAliasName Alias
    * @return the file, maybe does not exist
    */
-  @NotNull
-  public File getLiquibaseFolderPathForAlias(@NotNull String pAliasName)
+  @NonNull
+  public File getLiquibaseFolderPathForAlias(@NonNull String pAliasName)
   {
     return _getLiquibaseFolderFileForAlias(pAliasName);
   }
@@ -125,7 +126,7 @@ public class LiquibaseFolderService implements Disposable
    * @param pOldName Old Name
    * @param pNewName New Name, NULL if it should be deleted
    */
-  public void moveAlias(@NotNull String pOldName, @Nullable String pNewName) throws IOException
+  public void moveAlias(@NonNull String pOldName, @Nullable String pNewName) throws IOException
   {
     // nothing to change
     if (pOldName.equals(pNewName))
@@ -149,8 +150,8 @@ public class LiquibaseFolderService implements Disposable
    * @param pAliasName Alias
    * @return the file, maybe does not exist
    */
-  @NotNull
-  private File _getLiquibaseFolderFileForAlias(@NotNull String pAliasName)
+  @NonNull
+  private File _getLiquibaseFolderFileForAlias(@NonNull String pAliasName)
   {
     return new File(_getLiquibaseFolderFile(), pAliasName);
   }
@@ -160,7 +161,7 @@ public class LiquibaseFolderService implements Disposable
    *
    * @return the file, maybe does not exist
    */
-  @NotNull
+  @NonNull
   private File _getLiquibaseFolderFile()
   {
     return new File(FileUtil.toFile(project.getProjectDirectory()), _LIQUIBASE_FOLDER);

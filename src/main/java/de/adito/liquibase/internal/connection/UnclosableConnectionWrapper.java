@@ -1,6 +1,6 @@
 package de.adito.liquibase.internal.connection;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.sql.*;
 import java.util.*;
@@ -14,10 +14,10 @@ import java.util.concurrent.Executor;
 class UnclosableConnectionWrapper implements Connection
 {
 
-  @NotNull
+  @NonNull
   protected final Connection delegate;
 
-  public UnclosableConnectionWrapper(@NotNull Connection pConnection)
+  public UnclosableConnectionWrapper(@NonNull Connection pConnection)
   {
     delegate = pConnection;
   }

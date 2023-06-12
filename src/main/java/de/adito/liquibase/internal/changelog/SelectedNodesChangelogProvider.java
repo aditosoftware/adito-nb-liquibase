@@ -2,6 +2,7 @@ package de.adito.liquibase.internal.changelog;
 
 import de.adito.liquibase.nb.LiquibaseFolderService;
 import io.reactivex.rxjava3.core.Observable;
+import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.*;
@@ -104,7 +105,7 @@ public class SelectedNodesChangelogProvider implements IChangelogProvider
    * @return File or null, if no changelog was found
    */
   @Nullable
-  protected File findChangelog(@NotNull Lookup pLookup)
+  protected File findChangelog(@NonNull Lookup pLookup)
   {
     return pLookup.lookupAll(FileObject.class).stream()
         .filter(pFileObject -> pFileObject.getNameExt().equalsIgnoreCase("changelog.xml"))

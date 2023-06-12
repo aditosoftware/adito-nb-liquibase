@@ -1,6 +1,6 @@
 package de.adito.liquibase.actions;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
@@ -23,12 +23,12 @@ public class NewFolderAction extends AbstractFolderBasedAction
 {
 
   @Override
-  protected void performAction0(@NotNull Node[] pNodes, @NotNull String pName, @NotNull File pParent) throws CancellationException, IOException
+  protected void performAction0(@NonNull Node[] pNodes, @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException
   {
     Files.createDirectories(new File(pParent, pName).toPath());
   }
 
-  @NotNull
+  @NonNull
   @Override
   protected String getInputLineTitle()
   {

@@ -4,6 +4,7 @@ import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import de.adito.liquibase.internal.connection.IConnectionProvider;
 import liquibase.Contexts;
 import liquibase.exception.LiquibaseException;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 
 import java.io.IOException;
@@ -23,8 +24,8 @@ public interface ILiquibaseProvider
    * @param pConnectionProvider Provider for the current connection
    * @return the provider
    */
-  @NotNull
-  static ILiquibaseProvider getInstance(@NotNull IConnectionProvider pConnectionProvider)
+  @NonNull
+  static ILiquibaseProvider getInstance(@NonNull IConnectionProvider pConnectionProvider)
   {
     return new LiquibaseProviderImpl(pConnectionProvider);
   }
@@ -35,8 +36,8 @@ public interface ILiquibaseProvider
    * @param pConnection Current connection
    * @return the provider
    */
-  @NotNull
-  static ILiquibaseProvider getInstance(@NotNull Connection pConnection)
+  @NonNull
+  static ILiquibaseProvider getInstance(@NonNull Connection pConnection)
   {
     return new LiquibaseProviderImpl(pConnection);
   }
@@ -47,9 +48,9 @@ public interface ILiquibaseProvider
    * @param pChangeLogProvider ChangeLogProvider, if ressources have to be used
    * @param pExecutor          Function which provides access to liquibase
    */
-  <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException;
+  <Ex extends Exception> void executeOn(@Nullable IChangelogProvider pChangeLogProvider, @NonNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException;
 
-  <Ex extends Exception> void executeOn(boolean pChangelogRequired, @Nullable IChangelogProvider pChangeLogProvider, @NotNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException;
+  <Ex extends Exception> void executeOn(boolean pChangelogRequired, @Nullable IChangelogProvider pChangeLogProvider, @NonNull ILiquibaseConsumer<Ex> pExecutor) throws Ex, LiquibaseException, IOException;
 
   /**
    * Consumer, to get liquibase instance
@@ -63,7 +64,7 @@ public interface ILiquibaseProvider
     {
     }
 
-    void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws Ex;
+    void accept(@NonNull AbstractADITOLiquibase pLiquibase, @NonNull Contexts pContexts) throws Ex;
   }
 
 }

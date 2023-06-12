@@ -2,6 +2,7 @@ package de.adito.liquibase.internal.base;
 
 import de.adito.liquibase.internal.changelog.IChangelogProvider;
 import liquibase.resource.FileSystemResourceAccessor;
+import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.*;
@@ -17,7 +18,7 @@ import java.io.*;
 class ProjectResourceAccessor extends ClassLoaderFileSystemResourceAccessor
 {
 
-  public ProjectResourceAccessor(@NotNull IChangelogProvider pChangelogProvider)
+  public ProjectResourceAccessor(@NonNull IChangelogProvider pChangelogProvider)
   {
     super(_getResourceAccessorRoots(pChangelogProvider));
   }
@@ -28,8 +29,8 @@ class ProjectResourceAccessor extends ClassLoaderFileSystemResourceAccessor
    * @param pFile File
    * @return Path
    */
-  @NotNull
-  public String getRelativePath(@NotNull File pFile)
+  @NonNull
+  public String getRelativePath(@NonNull File pFile)
   {
     return getRootPaths().stream()
         .filter(pRoot -> {
@@ -55,7 +56,7 @@ class ProjectResourceAccessor extends ClassLoaderFileSystemResourceAccessor
    * @return the files
    */
   @Nullable
-  private static File[] _getResourceAccessorRoots(@NotNull IChangelogProvider pChangelogProvider)
+  private static File[] _getResourceAccessorRoots(@NonNull IChangelogProvider pChangelogProvider)
   {
     File changeLog = pChangelogProvider.findCurrentChangeLog();
     if (changeLog == null)

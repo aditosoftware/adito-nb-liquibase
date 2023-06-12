@@ -2,7 +2,7 @@ package de.adito.liquibase.actions;
 
 import de.adito.liquibase.internal.executors.ILiquibaseExecutorFacade;
 import liquibase.exception.LiquibaseException;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
@@ -23,7 +23,7 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
+  protected void performAction0(@NonNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
   {
     // Drop All & Update
     ILiquibaseExecutorFacade.INSTANCE.executeDropAllAndUpdate(getConnectionProvider(), getChangelogProvider());

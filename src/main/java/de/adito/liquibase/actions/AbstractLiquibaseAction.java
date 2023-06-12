@@ -5,7 +5,7 @@ import de.adito.liquibase.internal.changelog.*;
 import de.adito.liquibase.internal.connection.*;
 import de.adito.notification.INotificationFacade;
 import liquibase.exception.LiquibaseException;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.LifecycleManager;
 import org.openide.nodes.Node;
 import org.openide.util.*;
@@ -29,7 +29,7 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
     this(new SelectedNodesChangelogProvider());
   }
 
-  public AbstractLiquibaseAction(@NotNull IChangelogProvider pChangelogProvider)
+  public AbstractLiquibaseAction(@NonNull IChangelogProvider pChangelogProvider)
   {
     changelogProvider = pChangelogProvider;
   }
@@ -58,7 +58,7 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
   }
 
   @Override
-  protected boolean enable0(@NotNull Node[] pNodes)
+  protected boolean enable0(@NonNull Node[] pNodes)
   {
     // disabled for now, as this can take a very long time due to sequential processing and a possible timeout of 30s per connection
     //boolean connectionOK = connectionProvider.hasConnectionsAvailable();
@@ -104,12 +104,12 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
    * @throws LiquibaseException    Exception that happens, if Liquibase failes somehow
    * @throws IOException           Exception that happens, if the connection could not be created
    */
-  protected abstract void performAction0(@NotNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException;
+  protected abstract void performAction0(@NonNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException;
 
   /**
    * @return the connection provider for creating liquibase instances
    */
-  @NotNull
+  @NonNull
   protected IConnectionProvider getConnectionProvider()
   {
     connectionProvider.reset();
@@ -119,7 +119,7 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
   /**
    * @return the changelog provider that provides access to the currently selected changelog
    */
-  @NotNull
+  @NonNull
   protected IChangelogProvider getChangelogProvider()
   {
     return changelogProvider;

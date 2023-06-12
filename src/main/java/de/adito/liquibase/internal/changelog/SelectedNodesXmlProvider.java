@@ -1,5 +1,6 @@
 package de.adito.liquibase.internal.changelog;
 
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.openide.filesystems.*;
 import org.openide.util.Lookup;
@@ -22,7 +23,7 @@ public class SelectedNodesXmlProvider extends SelectedNodesChangelogProvider
    */
   @Nullable
   @Override
-  protected File findChangelog(@NotNull Lookup pLookup)
+  protected File findChangelog(@NonNull Lookup pLookup)
   {
     return pLookup.lookupAll(FileObject.class).stream()
         .filter(pFileObject -> pFileObject.getNameExt().endsWith("xml"))

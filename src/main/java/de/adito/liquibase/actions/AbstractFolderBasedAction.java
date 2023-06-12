@@ -3,6 +3,7 @@ package de.adito.liquibase.actions;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
 import de.adito.liquibase.nb.LiquibaseFolderService;
 import de.adito.notification.INotificationFacade;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.*;
@@ -20,14 +21,14 @@ public abstract class AbstractFolderBasedAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected boolean enable0(@NotNull Node[] pActivatedNodes)
+  protected boolean enable0(@NonNull Node[] pActivatedNodes)
   {
     // if .liquibase-folder could be found
     return findLiquibaseFolder(pActivatedNodes[0]) != null;
   }
 
   @Override
-  protected void performAction0(@NotNull Node[] pActivatedNodes) throws CancellationException
+  protected void performAction0(@NonNull Node[] pActivatedNodes) throws CancellationException
   {
     NotifyDescriptor.InputLine desc = new NotifyDescriptor.InputLine(getInputLineTitle(), getName());
     Object result = DialogDisplayer.getDefault().notify(desc);
@@ -55,7 +56,7 @@ public abstract class AbstractFolderBasedAction extends AbstractLiquibaseAction
   }
 
   @Nullable
-  protected File findLiquibaseFolder(@NotNull Node pNode)
+  protected File findLiquibaseFolder(@NonNull Node pNode)
   {
     String aliasName = getChangelogProvider().findAliasName();
 
@@ -79,13 +80,13 @@ public abstract class AbstractFolderBasedAction extends AbstractLiquibaseAction
     return null;
   }
 
-  protected abstract void performAction0(@NotNull Node[] pActivatedNodes,
-                                         @NotNull String pName, @NotNull File pParent) throws CancellationException, IOException;
+  protected abstract void performAction0(@NonNull Node[] pActivatedNodes,
+                                         @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException;
 
   /**
    * @return Title for the inputLine dialog
    */
-  @NotNull
+  @NonNull
   protected abstract String getInputLineTitle();
 
   /**

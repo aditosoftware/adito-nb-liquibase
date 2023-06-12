@@ -5,7 +5,7 @@ import de.adito.aditoweb.nbm.vaadinicons.IVaadinIconsProvider;
 import de.adito.swing.icon.IconAttributes;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.rxjava3.disposables.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.util.*;
 import org.openide.windows.WindowManager;
 
@@ -40,7 +40,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
 
   @NbBundle.Messages({"LoadingIconTooltip=Looking for further available connections",
                       "PreselectedConnectionFound=Found a connection that matches the preselection criteria in the newly loaded connections"})
-  SelectConnectionDialogPanel(@NotNull SelectConnectionDialogModel pModel)
+  SelectConnectionDialogPanel(@NonNull SelectConnectionDialogModel pModel)
   {
     model = pModel;
     model.addConnectionStateListener(this);
@@ -94,7 +94,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   /**
    * @return the new ComboBox to select a connection
    */
-  @NotNull
+  @NonNull
   private JComponent _createComboBox()
   {
     JComboBox<Object> combo = new JComboBox<>(model);
@@ -153,7 +153,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
    *
    * @param pValidator the validator
    */
-  public void setValidator(@NotNull Consumer<Boolean> pValidator)
+  public void setValidator(@NonNull Consumer<Boolean> pValidator)
   {
     pValidator.accept(false);
     disposable.add(model.observeIsValid().subscribe(pBoolean -> pValidator.accept(pBoolean != null && pBoolean)));
@@ -163,7 +163,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
    * @return the checkbox to determine, if the user wants to show all connections
    */
   @NbBundle.Messages("ShowAllConnections=Show all connections")
-  @NotNull
+  @NonNull
   private JCheckBox _createCheckBox()
   {
     JCheckBox cb = new JCheckBox(Bundle.ShowAllConnections());
@@ -177,7 +177,7 @@ class SelectConnectionDialogPanel extends JPanel implements Disposable, IConnect
   /**
    * @return the message label to show more information, if for example an "external" connection was selected
    */
-  @NotNull
+  @NonNull
   private JLabel _createMessageLabel()
   {
     messageLabel = new JLabel();

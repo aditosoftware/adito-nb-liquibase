@@ -1,6 +1,6 @@
 package de.adito.liquibase.nb;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.spi.search.*;
 import org.openide.filesystems.FileObject;
 import org.openide.util.lookup.ServiceProvider;
@@ -15,21 +15,21 @@ import java.util.*;
 @ServiceProvider(service = SubTreeSearchOptions.class, path = "Projects/de-adito-project/SearchOptions")
 public class LiquibaseSearchOption extends SubTreeSearchOptions
 {
-  @NotNull
+  @NonNull
   @Override
   public List<SearchFilterDefinition> getFilters()
   {
     return Collections.singletonList(new SearchFilterDefinition()
     {
       @Override
-      public boolean searchFile(@NotNull FileObject file) throws IllegalArgumentException
+      public boolean searchFile(@NonNull FileObject file) throws IllegalArgumentException
       {
         return true;
       }
 
-      @NotNull
+      @NonNull
       @Override
-      public FolderResult traverseFolder(@NotNull FileObject folder) throws IllegalArgumentException
+      public FolderResult traverseFolder(@NonNull FileObject folder) throws IllegalArgumentException
       {
         if (folder.getNameExt().equalsIgnoreCase(".liquibase"))
           return FolderResult.TRAVERSE_ALL_SUBFOLDERS;

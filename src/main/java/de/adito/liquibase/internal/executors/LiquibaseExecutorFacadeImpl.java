@@ -15,6 +15,7 @@ import liquibase.diff.output.changelog.DiffToChangeLog;
 import liquibase.exception.*;
 import liquibase.integration.ant.type.ChangeLogOutputFile;
 import liquibase.structure.DatabaseObject;
+import lombok.NonNull;
 import org.apache.tools.ant.types.resources.FileResource;
 import org.jdom2.*;
 import org.jdom2.filter.ElementFilter;
@@ -38,7 +39,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
 {
 
   @Override
-  public void executeDropAll(@NotNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
+  public void executeDropAll(@NonNull IConnectionProvider pConnectionProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(null, new ILiquibaseProvider.ILiquibaseConsumer<LiquibaseException>()
     {
@@ -49,7 +50,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       }
 
       @Override
-      public void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws LiquibaseException
+      public void accept(@NonNull AbstractADITOLiquibase pLiquibase, @NonNull Contexts pContexts) throws LiquibaseException
       {
         _dropAll(pLiquibase);
       }
@@ -57,14 +58,14 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   }
 
   @Override
-  public void executeUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  public void executeUpdate(@NonNull IConnectionProvider pConnectionProvider, @NonNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider,
                                                                   (liquibase, contexts) -> _update(liquibase, contexts, pChangeLogProvider));
   }
 
   @Override
-  public void executeDropAllAndUpdate(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  public void executeDropAllAndUpdate(@NonNull IConnectionProvider pConnectionProvider, @NonNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, new ILiquibaseProvider.ILiquibaseConsumer<LiquibaseException>()
     {
@@ -75,7 +76,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       }
 
       @Override
-      public void accept(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts) throws LiquibaseException
+      public void accept(@NonNull AbstractADITOLiquibase pLiquibase, @NonNull Contexts pContexts) throws LiquibaseException
       {
         _dropAll(pLiquibase);
         _update(pLiquibase, pContexts, pChangeLogProvider);
@@ -88,7 +89,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       "LBL_UpdateSuccess=Update Succesfull",
       "LBL_DiffWithDBTables=Diff AliasDefinition <> Database Tables"
   })
-  private void _update(@NotNull Liquibase pLiquibase, @NotNull Contexts pContexts, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException
+  private void _update(@NonNull Liquibase pLiquibase, @NonNull Contexts pContexts, @NonNull IChangelogProvider pChangeLogProvider) throws LiquibaseException
   {
     // prefetch information that will be used in notification
     File changeLog = pChangeLogProvider.hasChangelogsAvailable() ? pChangeLogProvider.findCurrentChangeLog() : null;
@@ -116,7 +117,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       "LBL_DropSuccess_Title=Drop Success",
       "LBL_DropSuccess_Message=Dropped all data from database"
   })
-  private void _dropAll(@NotNull Liquibase pLiquibase) throws DatabaseException
+  private void _dropAll(@NonNull Liquibase pLiquibase) throws DatabaseException
   {
     // Execute Action
     pLiquibase.dropAll();
@@ -141,7 +142,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   }
 
   @Override
-  public void executeUpdateSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  public void executeUpdateSQL(@NonNull IConnectionProvider pConnectionProvider, @NonNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
       Writer writer = new StringWriter();
@@ -157,7 +158,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       "LBL_MessageRollbackImpossible=Maybe in the changelog is a insert-tag or sql-tag defined, but no rollback-tag"
   })
   @Override
-  public void executeFutureRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  public void executeFutureRollbackSQL(@NonNull IConnectionProvider pConnectionProvider, @NonNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
       Writer writer = new StringWriter();
@@ -170,7 +171,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   }
 
   @Override
-  public void executeUpdateAndRollbackSQL(@NotNull IConnectionProvider pConnectionProvider, @NotNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
+  public void executeUpdateAndRollbackSQL(@NonNull IConnectionProvider pConnectionProvider, @NonNull IChangelogProvider pChangeLogProvider) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(true, pChangeLogProvider, (pLiquibase, pContexts) -> {
       Writer writer = new StringWriter();
@@ -186,7 +187,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   /**
    * Executes the UPDATE SQL command. It does not check, if the changelog is already run or not.
    */
-  private void _getUpdateSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts, @NotNull Writer pOutput) throws LiquibaseException
+  private void _getUpdateSql(@NonNull AbstractADITOLiquibase pLiquibase, @NonNull Contexts pContexts, @NonNull Writer pOutput) throws LiquibaseException
   {
     try
     {
@@ -203,7 +204,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
    * Executes the FUTURE ROLLBACK SQL command. If an {@link RollbackImpossibleException} occures, it isn't shown as error, but as information.
    */
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  private boolean _getFutureRollbackSql(@NotNull AbstractADITOLiquibase pLiquibase, @NotNull Contexts pContexts, @NotNull Writer pOutput) throws LiquibaseException
+  private boolean _getFutureRollbackSql(@NonNull AbstractADITOLiquibase pLiquibase, @NonNull Contexts pContexts, @NonNull Writer pOutput) throws LiquibaseException
   {
     try
     {
@@ -232,7 +233,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
       "LBL_TitleGenerate=Changelog generated",
       "LBL_MessageGenerate=Cangelog successfully generated"
   })
-  public void executeGenerateChangelog(@NotNull Connection pConnectionProvider, @NotNull String pTableName, @Nullable String pSubfolderName) throws LiquibaseException, IOException
+  public void executeGenerateChangelog(@NonNull Connection pConnectionProvider, @NonNull String pTableName, @Nullable String pSubfolderName) throws LiquibaseException, IOException
   {
     ILiquibaseProvider.getInstance(pConnectionProvider).executeOn(false, null, (pLiquibase, pString) -> {
       GenerateChangelogOptionsPanel dialog = new GenerateChangelogOptionsPanel(pSubfolderName);
@@ -253,7 +254,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
   /**
    * Generates a Changelog-File
    */
-  private void _createChangelogFile(@NotNull Liquibase pLiquibase, @NotNull String pTableName, @NotNull String pFullPath, @NotNull String pAuthor,
+  private void _createChangelogFile(@NonNull Liquibase pLiquibase, @NonNull String pTableName, @NonNull String pFullPath, @NonNull String pAuthor,
                                     boolean pIncludeCatalog, boolean pIncludeSchema, Class<? extends DatabaseObject>[] pSnapshotTypes) throws LiquibaseException
   {
     CatalogAndSchema catalogAndSchema = new CatalogAndSchema(pLiquibase.getDatabase().getDefaultCatalogName(), pLiquibase.getDatabase().getDefaultSchemaName());
@@ -320,7 +321,7 @@ class LiquibaseExecutorFacadeImpl implements ILiquibaseExecutorFacade
    * @param pId     the ID, which should be set
    * @throws LiquibaseException when something goes wrong
    */
-  protected void modifyChangeset(@NotNull File pFile, @NotNull String pAuthor, @NotNull String pId) throws LiquibaseException
+  protected void modifyChangeset(@NonNull File pFile, @NonNull String pAuthor, @NonNull String pId) throws LiquibaseException
   {
     try
     {

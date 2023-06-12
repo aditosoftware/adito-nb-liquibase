@@ -3,6 +3,7 @@ package de.adito.liquibase.internal.connection;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.util.*;
@@ -28,7 +29,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   private final Set<String> selectedContexts = new HashSet<>();
   private final List<IConnectionLoaderStateListener> connectionStateListeners = new ArrayList<>();
 
-  SelectConnectionDialogModel(@NotNull Project pProject, @Nullable String pPreselectedSourceName, @NotNull Supplier<Set<String>> pGetContexts)
+  SelectConnectionDialogModel(@NonNull Project pProject, @Nullable String pPreselectedSourceName, @NonNull Supplier<Set<String>> pGetContexts)
   {
     contextsLoaded.onNext(Optional.empty());
     selectedContextsChanged.onNext(Optional.empty());
@@ -91,7 +92,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   /**
    * @return Creates an Observable, that checks, if the current selection in the dialog is valid
    */
-  @NotNull
+  @NonNull
   public Observable<Boolean> observeIsValid()
   {
     return Observable.combineLatest(selectedContextsChanged, connections, contextsLoaded, (pContexts, pItem, pContextsLoaded) ->
@@ -104,7 +105,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
    * @param pProject    Project for which to load connections
    * @param pSourceName name of the connection to preselect
    */
-  private void _loadAsync(@NotNull Project pProject, @Nullable String pSourceName)
+  private void _loadAsync(@NonNull Project pProject, @Nullable String pSourceName)
   {
     new Thread(() -> {
       for (IPossibleConnectionProvider.IPossibleDBConnection c : AditoConnectionManager.getPossibleConnections(pProject))
@@ -158,7 +159,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     return !availableData.isEmpty();
   }
 
-  public void contextSelected(@NotNull String pContextName, boolean pEnabled)
+  public void contextSelected(@NonNull String pContextName, boolean pEnabled)
   {
     if (pEnabled)
       selectedContexts.add(pContextName);
@@ -170,7 +171,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   /**
    * @return the selected connection or null if no connection was selected
    */
-  @NotNull
+  @NonNull
   public Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> getSelectedConnectionAndContexts()
   {
     List<String> selected;
@@ -199,7 +200,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
     super.setSelectedItem(anObject);
   }
 
-  private void _loadContexts(@NotNull Supplier<Set<String>> pGetContexts)
+  private void _loadContexts(@NonNull Supplier<Set<String>> pGetContexts)
   {
     fireConnectionStateChanged(IConnectionLoaderStateListener.ELoadingState.LOADING);
     RequestProcessor.getDefault().execute(() -> {
@@ -241,7 +242,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
    *
    * @param pSourceName Name of the source to preselect
    */
-  private void _tryPreselect(@NotNull String pSourceName)
+  private void _tryPreselect(@NonNull String pSourceName)
   {
     _Item itemToSelect = _findItemToSelect(pSourceName);
     setSelectedItem(itemToSelect);
@@ -254,7 +255,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
    * @return the item that matched the sourceName
    */
   @Nullable
-  private _Item _findItemToSelect(@NotNull String pSourceName)
+  private _Item _findItemToSelect(@NonNull String pSourceName)
   {
     // Something 100% equal?
     for (_Item data : shownData)
@@ -288,7 +289,7 @@ class SelectConnectionDialogModel extends DefaultComboBoxModel<Object>
   {
     private final IPossibleConnectionProvider.IPossibleDBConnection connection;
 
-    _Item(@NotNull IPossibleConnectionProvider.IPossibleDBConnection pConnection)
+    _Item(@NonNull IPossibleConnectionProvider.IPossibleDBConnection pConnection)
     {
       connection = pConnection;
     }
