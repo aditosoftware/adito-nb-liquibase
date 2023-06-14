@@ -1,6 +1,6 @@
 package de.adito.liquibase.nb;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.api.actions.Openable;
 import org.openide.filesystems.*;
 
@@ -19,7 +19,7 @@ public class NbUtil
    *
    * @param pFile the file, which should be opened
    */
-  public static void open(@NotNull File pFile)
+  public static void open(@NonNull File pFile)
   {
     FileObject fo = FileUtil.toFileObject(pFile);
     for (Openable openable : fo.getLookup().lookupAll(Openable.class))

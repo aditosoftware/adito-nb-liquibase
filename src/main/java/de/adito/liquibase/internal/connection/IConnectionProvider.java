@@ -1,6 +1,6 @@
 package de.adito.liquibase.internal.connection;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -23,8 +23,8 @@ public interface IConnectionProvider
    * @throws Ex          if something inside pFunction failed
    */
   @SuppressWarnings("UnusedReturnValue")
-  <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Supplier<Set<String>> pGetContexts,
-                                                         @NotNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex;
+  <T, Ex extends Throwable> T executeOnCurrentConnection(@NonNull Supplier<Set<String>> pGetContexts,
+                                                         @NonNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex;
 
   /**
    * This resets the chosen connection so that, e.g. the user has to choose another one
@@ -40,7 +40,7 @@ public interface IConnectionProvider
     {
     }
 
-    T apply(@NotNull Connection pConnection, @NotNull List<String> pContexts) throws Ex;
+    T apply(@NonNull Connection pConnection, @NonNull List<String> pContexts) throws Ex;
   }
 
 }

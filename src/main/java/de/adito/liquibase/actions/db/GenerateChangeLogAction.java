@@ -3,7 +3,7 @@ package de.adito.liquibase.actions.db;
 import de.adito.liquibase.actions.AbstractLiquibaseAction;
 import de.adito.liquibase.internal.executors.ILiquibaseExecutorFacade;
 import liquibase.exception.LiquibaseException;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.netbeans.modules.db.explorer.DatabaseConnection;
 import org.netbeans.modules.db.explorer.node.TableNode;
 import org.openide.awt.*;
@@ -29,7 +29,7 @@ public class GenerateChangeLogAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected boolean enable0(@NotNull Node[] pNodes)
+  protected boolean enable0(@NonNull Node[] pNodes)
   {
     return pNodes.length == 1;
   }
@@ -41,7 +41,7 @@ public class GenerateChangeLogAction extends AbstractLiquibaseAction
   }
 
   @Override
-  protected void performAction0(@NotNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException
+  protected void performAction0(@NonNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException
   {
     Node node = pActivatedNodes[0];
     TableNode tabNode = node.getLookup().lookup(TableNode.class);
@@ -50,7 +50,7 @@ public class GenerateChangeLogAction extends AbstractLiquibaseAction
       ILiquibaseExecutorFacade.INSTANCE.executeGenerateChangelog(con, tabNode.getName(), _getRootNodeName(node));
   }
 
-  private String _getRootNodeName(@NotNull Node pNode)
+  private String _getRootNodeName(@NonNull Node pNode)
   {
     Node parent = pNode.getParentNode();
     if (parent == null)

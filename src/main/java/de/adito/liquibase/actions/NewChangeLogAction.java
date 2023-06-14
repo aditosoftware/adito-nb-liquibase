@@ -3,8 +3,8 @@ package de.adito.liquibase.actions;
 
 import com.google.common.base.Charsets;
 import de.adito.liquibase.nb.NbUtil;
+import lombok.NonNull;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
@@ -40,7 +40,7 @@ public class NewChangeLogAction extends AbstractFolderBasedAction
   }
 
   @Override
-  protected void performAction0(@NotNull Node[] pNodes, @NotNull String pName, @NotNull File pParent) throws CancellationException, IOException
+  protected void performAction0(@NonNull Node[] pNodes, @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException
   {
     if (!pName.endsWith(".xml"))
       pName += ".xml";
@@ -57,7 +57,7 @@ public class NewChangeLogAction extends AbstractFolderBasedAction
     NbUtil.open(target);
   }
 
-  @NotNull
+  @NonNull
   @Override
   protected String getInputLineTitle()
   {

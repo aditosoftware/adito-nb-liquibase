@@ -4,7 +4,7 @@ import de.adito.liquibase.actions.AbstractLiquibaseAction;
 import de.adito.liquibase.internal.changelog.SelectedNodesXmlProvider;
 import de.adito.liquibase.internal.executors.ILiquibaseExecutorFacade;
 import liquibase.exception.LiquibaseException;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.awt.*;
 import org.openide.nodes.Node;
 import org.openide.util.NbBundle;
@@ -30,7 +30,7 @@ public class UpdateSqlAction extends AbstractLiquibaseAction
   }
 
   @Override
-  protected void performAction0(@NotNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
+  protected void performAction0(@NonNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
   {
     ILiquibaseExecutorFacade.INSTANCE.executeUpdateSQL(getConnectionProvider(), getChangelogProvider());
   }
@@ -42,7 +42,7 @@ public class UpdateSqlAction extends AbstractLiquibaseAction
   }
 
   @Override
-  protected boolean enable0(@NotNull Node[] pNodes)
+  protected boolean enable0(@NonNull Node[] pNodes)
   {
     return true;
   }

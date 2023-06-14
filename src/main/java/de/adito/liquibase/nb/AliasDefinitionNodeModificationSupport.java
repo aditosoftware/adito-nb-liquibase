@@ -9,6 +9,7 @@ import de.adito.observables.netbeans.*;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.*;
 import io.reactivex.rxjava3.functions.Consumer;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.*;
 import org.openide.actions.OpenAction;
@@ -38,14 +39,14 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
 {
 
   @Override
-  public boolean canModify(@NotNull Node pNode)
+  public boolean canModify(@NonNull Node pNode)
   {
     return true;
   }
 
   @Nullable
   @Override
-  public Node modify(@NotNull Node pNode, @NotNull Map<Object, Object> pAttributes)
+  public Node modify(@NonNull Node pNode, @NonNull Map<Object, Object> pAttributes)
   {
     return new _AliasDefinitionNode(pNode);
   }
@@ -58,12 +59,12 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
     private final CompositeDisposable disposable;
     private List<String[]> expanded = null;
 
-    private _AliasDefinitionNode(@NotNull Node pAliasDefNode)
+    private _AliasDefinitionNode(@NonNull Node pAliasDefNode)
     {
       this(pAliasDefNode, new InstanceContent());
     }
 
-    private _AliasDefinitionNode(@NotNull Node pAliasDefNode, @NotNull InstanceContent pInstanceContent)
+    private _AliasDefinitionNode(@NonNull Node pAliasDefNode, @NonNull InstanceContent pInstanceContent)
     {
       super(new AbstractNode(org.openide.nodes.Children.LEAF), null,
             new ProxyLookup(new AbstractLookup(pInstanceContent), Lookups.exclude(pAliasDefNode.getLookup(), Node.class)));
@@ -127,8 +128,8 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
      * @param pAliasDefNode Node of the aliasDefinition
      * @return the liquibase folder observable
      */
-    @NotNull
-    private Observable<Optional<FileObject>> _watchLiquibaseFolder(@NotNull Node pAliasDefNode)
+    @NonNull
+    private Observable<Optional<FileObject>> _watchLiquibaseFolder(@NonNull Node pAliasDefNode)
     {
       return _watchAliasAODFile(pAliasDefNode)
 
@@ -156,8 +157,8 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
      * @param pAliasDefNode Node
      * @return Name-Observable
      */
-    @NotNull
-    private Observable<Optional<FileObject>> _watchAliasAODFile(@NotNull Node pAliasDefNode)
+    @NonNull
+    private Observable<Optional<FileObject>> _watchAliasAODFile(@NonNull Node pAliasDefNode)
     {
       return LookupResultObservable.create(pAliasDefNode.getLookup(), DataObject.class)
 
@@ -181,7 +182,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
      * @return the node, or null if it cannot be read
      */
     @Nullable
-    private Node _getNode(@NotNull FileObject pFileObject)
+    private Node _getNode(@NonNull FileObject pFileObject)
     {
       try
       {
@@ -251,7 +252,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
    */
   private static class _FolderNode extends FilterNode
   {
-    public _FolderNode(@NotNull Node pOriginal)
+    public _FolderNode(@NonNull Node pOriginal)
     {
       super(pOriginal, new _Children(pOriginal), new ProxyLookup(Lookups.fixed((AbstractFolderBasedAction.IFolderProvider)
                                                                                    () -> pOriginal.getLookup().lookup(FileObject.class)),
@@ -276,7 +277,7 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
       return actions.toArray(new Action[0]);
     }
 
-    public void changeOriginal(@NotNull Node pNode)
+    public void changeOriginal(@NonNull Node pNode)
     {
       if (!pNode.equals(getOriginal()))
         changeOriginal(pNode, true);
@@ -293,13 +294,13 @@ public class AliasDefinitionNodeModificationSupport implements INodeModification
      */
     private static class _Children extends FilterNode.Children
     {
-      public _Children(@NotNull Node pOriginal)
+      public _Children(@NonNull Node pOriginal)
       {
         super(pOriginal);
       }
 
       @Override
-      protected Node copyNode(@NotNull Node pNode)
+      protected Node copyNode(@NonNull Node pNode)
       {
         FileObject fo = pNode.getLookup().lookup(FileObject.class);
         if (fo != null)

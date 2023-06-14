@@ -2,6 +2,7 @@ package de.adito.liquibase.internal.connection;
 
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.common.IProjectQuery;
 import de.adito.aditoweb.nbm.nbide.nbaditointerface.database.IPossibleConnectionProvider;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.*;
@@ -29,8 +30,8 @@ public class DialogConnectionProvider implements IConnectionProvider
   private WeakReference<IPossibleConnectionProvider.IPossibleDBConnection> selectedConnectionRef;
 
   @Override
-  public <T, Ex extends Throwable> T executeOnCurrentConnection(@NotNull Supplier<Set<String>> pGetContexts,
-                                                                @NotNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex
+  public <T, Ex extends Throwable> T executeOnCurrentConnection(@NonNull Supplier<Set<String>> pGetContexts,
+                                                                @NonNull IConnectionContextFunction<T, Ex> pFunction) throws IOException, Ex
   {
     Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> result = _findPersistedConnection(pGetContexts, true);
     IPossibleConnectionProvider.IPossibleDBConnection con = result.first();
@@ -62,9 +63,9 @@ public class DialogConnectionProvider implements IConnectionProvider
       "MSG_SelectConnection=Select Database Connection",
       "ACSD_SelectConnection=Select the database connection for generating connection code."
   })
-  @NotNull
-  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _showSelectionDialog(@NotNull Supplier<Set<String>> pGetContexts,
-                                                                                                     @NotNull Project pProject) throws CancellationException
+  @NonNull
+  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _showSelectionDialog(@NonNull Supplier<Set<String>> pGetContexts,
+                                                                                                     @NonNull Project pProject) throws CancellationException
   {
     SelectConnectionDialogModel model = new SelectConnectionDialogModel(pProject, _getSelectedAliasDefinitionName(), pGetContexts);
     SelectConnectionDialogPanel panel = new SelectConnectionDialogPanel(model);
@@ -109,8 +110,8 @@ public class DialogConnectionProvider implements IConnectionProvider
         .orElse(null);
   }
 
-  @NotNull
-  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _findPersistedConnection(@NotNull Supplier<Set<String>> pGetContexts,
+  @NonNull
+  private Pair<IPossibleConnectionProvider.IPossibleDBConnection, List<String>> _findPersistedConnection(@NonNull Supplier<Set<String>> pGetContexts,
                                                                                                          @SuppressWarnings("SameParameterValue") boolean pOpenNewConnection)
   {
     IPossibleConnectionProvider.IPossibleDBConnection con = selectedConnectionRef == null ? null : selectedConnectionRef.get();

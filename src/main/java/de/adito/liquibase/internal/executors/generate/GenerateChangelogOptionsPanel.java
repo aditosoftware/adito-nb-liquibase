@@ -3,6 +3,7 @@ package de.adito.liquibase.internal.executors.generate;
 import de.adito.liquibase.nb.LiquibaseFolderService;
 import info.clearthought.layout.TableLayout;
 import io.reactivex.rxjava3.core.Observable;
+import lombok.NonNull;
 import org.jetbrains.annotations.*;
 import org.netbeans.api.project.Project;
 import org.openide.*;
@@ -158,7 +159,7 @@ public class GenerateChangelogOptionsPanel extends JPanel
     return browse;
   }
 
-  private void _addValidationListener(@NotNull JTextField pTxtField)
+  private void _addValidationListener(@NonNull JTextField pTxtField)
   {
     pTxtField.getDocument().addDocumentListener(new DocumentListener()
     {
@@ -211,7 +212,7 @@ public class GenerateChangelogOptionsPanel extends JPanel
     }
   }
 
-  private String _modifyChangelogName(@NotNull String pName)
+  private String _modifyChangelogName(@NonNull String pName)
   {
     if (!pName.endsWith(".xml"))
       pName = pName + ".xml";
@@ -222,7 +223,7 @@ public class GenerateChangelogOptionsPanel extends JPanel
   @NbBundle.Messages({
       "LBL_TitleDialog=Generate ChangeLog for "
   })
-  public boolean showDialog(@NotNull String pTableName)
+  public boolean showDialog(@NonNull String pTableName)
   {
     desc = new DialogDescriptor(this, Bundle.LBL_TitleDialog() + "\"" + pTableName + "\"");
 

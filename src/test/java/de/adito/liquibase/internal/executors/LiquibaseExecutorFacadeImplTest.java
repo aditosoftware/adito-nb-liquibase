@@ -1,8 +1,8 @@
 package de.adito.liquibase.internal.executors;
 
 import liquibase.exception.LiquibaseException;
+import lombok.NonNull;
 import org.apache.commons.io.*;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.*;
@@ -35,7 +35,7 @@ class LiquibaseExecutorFacadeImplTest
   {
     @ParameterizedTest
     @MethodSource("de.adito.liquibase.internal.executors.LiquibaseExecutorFacadeImplTest#provideFilePaths")
-    void shouldReplaceEverything(@NotNull String pPathUnmodified, @NotNull String pPathModified) throws IOException, LiquibaseException
+    void shouldReplaceEverything(@NonNull String pPathUnmodified, @NonNull String pPathModified) throws IOException, LiquibaseException
     {
       // Load unmodified File
       File file = Files.createTempFile("LiquibaseExecutorFacadeImplTest_changelog", ".xml").toFile();

@@ -2,7 +2,7 @@ package de.adito.liquibase.internal.executors.generate;
 
 import liquibase.structure.DatabaseObject;
 import liquibase.structure.core.*;
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.openide.util.NbBundle;
 
 import java.util.*;
@@ -28,7 +28,7 @@ public enum EGenerateType
    */
   DATA(List.of(Data.class), Bundle.LBL_Data(), false);
 
-  EGenerateType(@NotNull Collection<Class<? extends DatabaseObject>> pSnapshotTypes, String pDisplayName, boolean pDefaultType)
+  EGenerateType(@NonNull Collection<Class<? extends DatabaseObject>> pSnapshotTypes, String pDisplayName, boolean pDefaultType)
   {
     snapshotTypes = pSnapshotTypes;
     displayName = pDisplayName;
