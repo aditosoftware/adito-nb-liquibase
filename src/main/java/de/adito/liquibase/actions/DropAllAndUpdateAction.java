@@ -23,7 +23,7 @@ public class DropAllAndUpdateAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected void performAction0(@NonNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
+  protected void performAction0(Node @NonNull [] pNodes) throws CancellationException, LiquibaseException, IOException
   {
     // Drop All & Update
     ILiquibaseExecutorFacade.INSTANCE.executeDropAllAndUpdate(getConnectionProvider(), getChangelogProvider());

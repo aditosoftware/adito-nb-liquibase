@@ -29,7 +29,7 @@ public class GenerateChangeLogAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected boolean enable0(@NonNull Node[] pNodes)
+  protected boolean enable0( Node @NonNull [] pNodes)
   {
     return pNodes.length == 1;
   }
@@ -41,7 +41,7 @@ public class GenerateChangeLogAction extends AbstractLiquibaseAction
   }
 
   @Override
-  protected void performAction0(@NonNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException
+  protected void performAction0(Node @NonNull [] pActivatedNodes) throws CancellationException, LiquibaseException, IOException
   {
     Node node = pActivatedNodes[0];
     TableNode tabNode = node.getLookup().lookup(TableNode.class);

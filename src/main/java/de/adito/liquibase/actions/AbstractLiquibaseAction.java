@@ -58,7 +58,7 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
   }
 
   @Override
-  protected boolean enable0(@NonNull Node[] pNodes)
+  protected boolean enable0( Node @NonNull [] pNodes)
   {
     // disabled for now, as this can take a very long time due to sequential processing and a possible timeout of 30s per connection
     //boolean connectionOK = connectionProvider.hasConnectionsAvailable();
@@ -104,7 +104,7 @@ public abstract class AbstractLiquibaseAction extends AbstractAsyncNodeAction
    * @throws LiquibaseException    Exception that happens, if Liquibase failes somehow
    * @throws IOException           Exception that happens, if the connection could not be created
    */
-  protected abstract void performAction0(@NonNull Node[] pActivatedNodes) throws CancellationException, LiquibaseException, IOException;
+  protected abstract void performAction0( Node @NonNull [] pActivatedNodes) throws CancellationException, LiquibaseException, IOException;
 
   /**
    * @return the connection provider for creating liquibase instances

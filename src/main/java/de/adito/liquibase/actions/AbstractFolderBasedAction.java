@@ -21,14 +21,14 @@ public abstract class AbstractFolderBasedAction extends AbstractLiquibaseAction
 {
 
   @Override
-  protected boolean enable0(@NonNull Node[] pActivatedNodes)
+  protected boolean enable0( Node @NonNull [] pActivatedNodes)
   {
     // if .liquibase-folder could be found
     return findLiquibaseFolder(pActivatedNodes[0]) != null;
   }
 
   @Override
-  protected void performAction0(@NonNull Node[] pActivatedNodes) throws CancellationException
+  protected void performAction0( Node @NonNull [] pActivatedNodes) throws CancellationException
   {
     NotifyDescriptor.InputLine desc = new NotifyDescriptor.InputLine(getInputLineTitle(), getName());
     Object result = DialogDisplayer.getDefault().notify(desc);
@@ -80,7 +80,7 @@ public abstract class AbstractFolderBasedAction extends AbstractLiquibaseAction
     return null;
   }
 
-  protected abstract void performAction0(@NonNull Node[] pActivatedNodes,
+  protected abstract void performAction0(Node @NonNull [] pActivatedNodes,
                                          @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException;
 
   /**

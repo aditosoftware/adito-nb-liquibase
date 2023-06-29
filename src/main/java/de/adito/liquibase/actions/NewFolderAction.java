@@ -23,7 +23,7 @@ public class NewFolderAction extends AbstractFolderBasedAction
 {
 
   @Override
-  protected void performAction0(@NonNull Node[] pNodes, @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException
+  protected void performAction0(@NonNull Node @NonNull [] pNodes, @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException
   {
     Files.createDirectories(new File(pParent, pName).toPath());
   }

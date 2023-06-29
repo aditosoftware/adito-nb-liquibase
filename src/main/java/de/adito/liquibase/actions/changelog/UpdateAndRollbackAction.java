@@ -30,7 +30,7 @@ public class UpdateAndRollbackAction extends AbstractLiquibaseAction
   }
 
   @Override
-  protected void performAction0(@NonNull Node[] pNodes) throws CancellationException, LiquibaseException, IOException
+  protected void performAction0(Node @NonNull [] pNodes) throws CancellationException, LiquibaseException, IOException
   {
     ILiquibaseExecutorFacade.INSTANCE.executeUpdateAndRollbackSQL(getConnectionProvider(), getChangelogProvider());
   }
@@ -42,7 +42,7 @@ public class UpdateAndRollbackAction extends AbstractLiquibaseAction
   }
 
   @Override
-  protected boolean enable0(@NonNull Node[] pNodes)
+  protected boolean enable0( Node @NonNull [] pNodes)
   {
     return true;
   }

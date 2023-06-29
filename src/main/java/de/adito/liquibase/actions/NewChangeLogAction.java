@@ -40,7 +40,7 @@ public class NewChangeLogAction extends AbstractFolderBasedAction
   }
 
   @Override
-  protected void performAction0(@NonNull Node[] pNodes, @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException
+  protected void performAction0(Node @NonNull [] pNodes, @NonNull String pName, @NonNull File pParent) throws CancellationException, IOException
   {
     if (!pName.endsWith(".xml"))
       pName += ".xml";
